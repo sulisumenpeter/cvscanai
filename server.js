@@ -1,20 +1,35 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const fetch = require('node-fetch');
 const path = require('path');
 
 const app = express();
+// Vercel sets the PORT automatically; 3000 is our local fallback
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/analyze', async (req, res) => {
-  const API_KEY = process.env.GEMINI_API_KEY;
-  if (!API_KEY) return res.status(500).json({ error: 'API Key missing' });
+  // Use a triple-check for the API key to ensure Vercel finds it
+  const API_KEY = process.env.GEMINI_API_KEY || process.env.gemini_api_key;
+
+  if (!API_KEY) {
+    console.error("Missing GEMINI_API_KEY in Environment Variables");
+    return res.status(500).json({ 
+      error: 'API Key missing. Please check Vercel Project Settings > Environment Variables.' 
+    });
+  }
 
   const { cv, jd } = req.body;
-  const prompt = `Analyze this CV against the JD. Return ONLY valid JSON: { "score": 85, "matched_keywords": ["react", "node"], "missing_keywords": ["aws"], "section_scores": [], "strengths": ["Clear formatting"], "improvements": ["Add metrics"] } \n\nCV: ${cv} \n\nJD: ${jd}`;
+  
+  // Prompt optimized for Lisumen Innovative Hub branding
+  const prompt = `You are an ATS analysis expert. Analyze the following CV against the Job Description. 
+  Return ONLY a valid JSON object with these keys: score, matched_keywords, missing_keywords, section_scores, strengths, improvements. 
+  
+  CV: ${cv}
+  JD: ${jd}`;
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
@@ -25,17 +40,16 @@ app.post('/api/analyze', async (req, res) => {
 
     const data = await response.json();
     
-    // Check if Gemini returned an error
-    if (data.error) throw new Error(data.error.message);
+    if (data.error) {
+      return res.status(response.status).json({ error: data.error.message });
+    }
 
     const rawText = data.candidates[0].content.parts[0].text;
     const cleanJson = rawText.replace(/```json|```/g, '').trim();
     
-    // We send back the actual parsed object to the frontend
-    res.json(JSON.parse(cleanJson)); 
+    res.json(JSON.parse(cleanJson));
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'AI processing failed' });
+    res.status(500).json({ error: 'AI Analysis failed. Please try again.' });
   }
 });
 
@@ -43,7 +57,10 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-if (require.main === module) {
-  app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-}
+// For Vercel, we export the app
 module.exports = app;
+
+// For local or VPS, we listen
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
