@@ -1,4 +1,4 @@
-// server.js — Optimized for Consistency | Sulisumen Peter
+// server.js — Triple Fallback Strategy | Sulisumen Peter
 require('dotenv').config();
 const express = require('express');
 const fetch = require('node-fetch');
@@ -7,91 +7,113 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '4mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// --- REUSABLE PROMPT ---
+const getSystemPrompt = () => `You are a professional ATS analyzer. Return ONLY a valid JSON object.
+Format: {"score": 0, "matched_keywords": [], "missing_keywords": [], "strengths": [], "improvements": []}`;
+
+// --- PROVIDER 1: GEMINI (Primary) ---
+async function tryGemini(cv, jd) {
+  const API_KEY = process.env.GEMINI_API_KEY;
+  const MODEL = 'gemini-3-flash-preview';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: `${getSystemPrompt()}\n\nAnalyze CV: ${cv} against JD: ${jd}` }] }],
+      generationConfig: { temperature: 0.1, topK: 1 }
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  
+  const rawText = data.candidates[0].content.parts[0].text;
+  return JSON.parse(rawText.replace(/```json|```/g, '').trim());
+}
+
+// --- PROVIDER 2: TOGETHER AI (Fallback) ---
+async function tryTogether(cv, jd) {
+  const API_KEY = process.env.TOGETHER_API_KEY;
+  const res = await fetch("https://api.together.xyz/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "meta-llama/Llama-3-70b-chat-hf",
+      messages: [
+        { role: "system", content: getSystemPrompt() },
+        { role: "user", content: `Analyze CV: ${cv} against JD: ${jd}` }
+      ],
+      temperature: 0.1
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return JSON.parse(data.choices[0].message.content);
+}
+
+// --- PROVIDER 3: FIREWORKS AI (Final Resort) ---
+async function tryFireworks(cv, jd) {
+  const API_KEY = process.env.FIREWORKS_API_KEY;
+  const res = await fetch("https://api.fireworks.ai/inference/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "accounts/fireworks/models/llama-v3-70b-instruct",
+      messages: [
+        { role: "system", content: getSystemPrompt() },
+        { role: "user", content: `Analyze CV: ${cv} against JD: ${jd}` }
+      ],
+      temperature: 0.1
+    })
+  });
+  const data = await res.json();
+  return JSON.parse(data.choices[0].message.content);
+}
+
+// --- MAIN API ROUTE ---
 app.post('/api/analyze', async (req, res) => {
-  const API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-
-  if (!API_KEY) {
-    console.error("ANALYSIS FAILED: Missing API Key.");
-    return res.status(500).json({ error: 'API Key missing in environment settings.' });
-  }
-
   const { cv, jd } = req.body;
-  if (!cv || !jd) return res.status(400).json({ error: 'CV and JD are required.' });
-
-  // Current stable model for 2026
-  const MODEL_NAME = 'gemini-3-flash-preview';
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
-
-  // Strict prompt logic to enforce scoring consistency
-  const prompt = `You are a professional ATS (Applicant Tracking System) simulation engine. 
-  Your task is to analyze the provided CV against the Job Description (JD) with mathematical precision.
-
-  SCORING RUBRIC:
-  - 40% Technical Skill Match (Keywords)
-  - 30% Experience Relevance
-  - 20% Education & Certifications
-  - 10% Formatting & Clarity
-
-  OUTPUT FORMAT:
-  Return ONLY a valid JSON object. Do not include conversational text.
-  {
-    "score": (number 0-100),
-    "matched_keywords": ["skill1", "skill2"],
-    "missing_keywords": ["skill3"],
-    "section_scores": [
-       {"section": "Technical Skills", "score": 0},
-       {"section": "Experience", "score": 0},
-       {"section": "Education", "score": 0}
-    ],
-    "strengths": ["point1"],
-    "improvements": ["action1"]
-  }
-
-  CV: ${cv}
-  JD: ${jd}`;
 
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        // STABILIZATION CONFIGURATION
-        generationConfig: { 
-          temperature: 0.1, // Minimizes randomness
-          topP: 0.1,        // Focuses on high-probability tokens
-          topK: 1,          // Forces the most likely prediction
-          maxOutputTokens: 2048
-        }
-      })
-    });
-
-    const data = await response.json();
-
-    if (data.error) {
-      return res.status(response.status).json({ error: data.error.message });
-    }
-
-    const rawText = data.candidates[0].content.parts[0].text;
-    const cleanJson = rawText.replace(/```json|```/g, '').trim();
-    
-    res.json(JSON.parse(cleanJson));
-
+    console.log("Stage 1: Attempting Gemini...");
+    const result = await tryGemini(cv, jd);
+    return res.json(result);
   } catch (err) {
-    console.error("Internal Server Error:", err.message);
-    res.status(500).json({ error: 'Analysis failed. Please try again.' });
+    console.error("Gemini Failed:", err.message);
+    
+    try {
+      console.log("Stage 2: Falling back to Together AI...");
+      const result = await tryTogether(cv, jd);
+      return res.json(result);
+    } catch (err2) {
+      console.error("Together AI Failed:", err2.message);
+      
+      try {
+        console.log("Stage 3: Falling back to Fireworks AI...");
+        const result = await tryFireworks(cv, jd);
+        return res.json(result);
+      } catch (err3) {
+        console.error("All Providers Failed.");
+        res.status(503).json({ error: "High traffic. All AI engines are currently at capacity. Please try again in 1 minute." });
+      }
+    }
   }
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-module.exports = app;
+app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`🚀 CVScan AI active on port ${PORT}`));
+  app.listen(PORT, () => console.log(`🚀 Sulisumen Peter Hub: Triple Fallback Active on ${PORT}`));
 }
+
+module.exports = app;
