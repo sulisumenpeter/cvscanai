@@ -1,67 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>CVScan AI — Lisumen Innovative Hub</title>
-    <style>
-        body { background: #060c18; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .box { max-width: 600px; margin: auto; background: #111d35; padding: 20px; border-radius: 12px; }
-        textarea { width: 90%; height: 120px; margin: 10px 0; border-radius: 8px; background: #060c18; color: white; border: 1px solid #333; padding: 10px; }
-        button { background: #00d4aa; padding: 15px; border: none; border-radius: 8px; cursor: pointer; width: 94%; font-weight: bold; }
-        #results { margin-top: 20px; text-align: left; display: none; padding: 15px; border-top: 1px solid #333; }
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CVScan AI — ATS Analyzer | Sulisumen Peter</title>
+<meta name="description" content="Free AI-powered ATS CV analyzer. Know your score before you apply. Built by Sulisumen Peter."/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500;700&family=DM+Mono&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#020617;--surface:#0f172a;--surface2:#1e293b;
+  --green:#10b981;--green-glow:rgba(16,185,129,0.2);
+  --red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;
+  --text:#f8fafc;--text2:#94a3b8;--text3:#64748b;
+  --border:rgba(255,255,255,0.06);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+
+/* HEADER */
+header{border-bottom:1px solid var(--border);background:rgba(2,6,23,0.8);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100}
+.header-inner{max-width:1100px;margin:0 auto;padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+.logo{text-decoration:none;display:flex;align-items:center;gap:12px}
+.logo-icon{font-size:24px;background:var(--surface2);padding:8px;border-radius:12px}
+.logo-name{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:#fff}
+.logo-sub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+
+/* HERO */
+.hero{text-align:center;padding:80px 24px 40px}
+h1{font-family:'Sora',sans-serif;font-size:clamp(32px,6vw,56px);font-weight:800;margin-bottom:16px}
+h1 span{color:var(--green)}
+.hero-p{color:var(--text2);max-width:600px;margin:0 auto 40px;font-size:18px}
+
+/* CARDS */
+.main{max-width:1100px;margin:0 auto;padding:0 24px 100px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:32px;margin-bottom:40px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:24px;transition:0.3s}
+.card:focus-within{border-color:var(--green);box-shadow:0 0 20px var(--green-glow)}
+.card-title{font-family:'Sora',sans-serif;font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:var(--text2)}
+
+textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:16px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;resize:none;min-height:250px;outline:none}
+
+/* BUTTON */
+.btn-analyze{width:100%;background:var(--green);color:#000;padding:20px;border-radius:16px;border:none;font-family:'Sora',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:0.3s}
+.btn-analyze:hover{transform:translateY(-2px);box-shadow:0 10px 30px var(--green-glow)}
+
+/* RESULTS */
+#results-area{margin-top:60px;display:none}
+.score-hero{display:flex;align-items:center;gap:40px;background:var(--surface2);padding:40px;border-radius:32px;margin-bottom:32px}
+.score-circle{position:relative;width:150px;height:150px;display:flex;align-items:center;justify-content:center}
+.score-val{font-size:48px;font-weight:800;font-family:'Sora',sans-serif}
+
+/* UTILS */
+.kw-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.kw{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600}
+.kw-match{background:rgba(16,185,129,0.1);color:var(--green)}
+.kw-miss{background:rgba(239,68,68,0.1);color:var(--red)}
+
+footer{text-align:center;padding:40px;border-top:1px solid var(--border);color:var(--text3);font-size:13px}
+footer a{color:var(--green);text-decoration:none}
+</style>
 </head>
 <body>
-    <div class="box">
-        <h1>🎯 CVScan AI</h1>
-        <p>Lisumen Innovative Hub · Nigeria</p>
-        <textarea id="cv" placeholder="Paste CV text here..."></textarea>
-        <textarea id="jd" placeholder="Paste Job Description here..."></textarea>
-        <button id="btn" onclick="analyze()">⚡ ANALYZE NOW</button>
-        
-        <div id="results">
-            <h2 id="score-text"></h2>
-            <p><strong>Strengths:</strong> <span id="str"></span></p>
-            <p><strong>Missing Keywords:</strong> <span id="miss"></span></p>
-        </div>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <div class="logo-icon">🎯</div>
+      <div>
+        <div class="logo-name">CVScan AI</div>
+        <div class="logo-sub">By Sulisumen Peter</div>
+      </div>
+    </a>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Optimize Your Career <span>Insights</span></h1>
+  <p class="hero-p">A high-precision ATS analyzer designed to help Nigerian graduates bridge the gap between application and interview.</p>
+</section>
+
+<main class="main">
+  <div class="input-grid">
+    <div class="card">
+      <div class="card-title">📄 Step 1: Your Resume Content</div>
+      <textarea id="cv-text" placeholder="Paste your full CV text here..."></textarea>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Step 2: Job Description</div>
+      <textarea id="jd-text" placeholder="Paste the Job Description here..."></textarea>
+    </div>
+  </div>
+
+  <button class="btn-analyze" id="analyze-btn" onclick="analyze()">⚡ ANALYZE MY CV</button>
+
+  <div id="results-area">
+    <div class="score-hero">
+      <div class="score-circle">
+        <div class="score-val" id="score-num">0</div>
+      </div>
+      <div>
+        <h2 id="score-verdict" style="font-size:28px;margin-bottom:10px">Calculating...</h2>
+        <p id="score-desc" style="color:var(--text2)"></p>
+      </div>
     </div>
 
-    <script>
-        async function analyze() {
-            const cv = document.getElementById('cv').value;
-            const jd = document.getElementById('jd').value;
-            const btn = document.getElementById('btn');
-            
-            if(!cv || !jd) return alert("Please fill in both boxes.");
+    <div class="input-grid">
+      <div class="card">
+        <div class="card-title" style="color:var(--green)">✅ Matched Keywords</div>
+        <div class="kw-grid" id="kw-match"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--red)">❌ Missing Keywords</div>
+        <div class="kw-grid" id="kw-miss"></div>
+      </div>
+    </div>
+  </div>
+</main>
 
-            btn.innerText = "⏳ ANALYZING...";
-            btn.disabled = true;
+<footer>
+  <p>Designed and Developed by <a href="https://www.linkedin.com/in/sulisumen-peter/">Sulisumen Peter</a></p>
+  <p>Powered by Google Gemini 3 AI</p>
+</footer>
 
-            try {
-                const response = await fetch('/api/analyze', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cv, jd })
-                });
+<script>
+// Paste your existing JavaScript logic here from the original file 
+// (Starting from 'const MAX_CV' to the end of the script tag)
+</script>
 
-                const data = await response.json();
-                
-                if (data.error) throw new Error(data.error);
-
-                // Display results
-                document.getElementById('results').style.display = 'block';
-                document.getElementById('score-text').innerText = "ATS Score: " + data.score + "/100";
-                document.getElementById('str').innerText = data.strengths.join(', ');
-                document.getElementById('miss').innerText = data.missing_keywords.join(', ');
-
-            } catch (err) {
-                console.error(err);
-                alert("Error: " + err.message);
-            } finally {
-                btn.innerText = "⚡ ANALYZE NOW";
-                btn.disabled = false;
-            }
-        }
-    </script>
 </body>
 </html>
