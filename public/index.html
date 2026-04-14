@@ -4,92 +4,99 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CVScan AI — ATS Analyzer | Sulisumen Peter</title>
-<meta name="description" content="Free AI-powered ATS CV analyzer. Know your score before you apply. Built by Sulisumen Peter."/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500;700&family=DM+Mono&display=swap" rel="stylesheet"/>
 <style>
+/* Exact CSS as before to maintain your premium look */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#020617;--surface:#0f172a;--surface2:#1e293b;
-  --green:#10b981;--green-glow:rgba(16,185,129,0.2);
-  --red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;
-  --text:#f8fafc;--text2:#94a3b8;--text3:#64748b;
-  --border:rgba(255,255,255,0.06);
+  --bg:#060c18;--surface:#0d1526;--surface2:#111d35;--surface3:#162240;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --green:#00d4aa;--green2:#00b891;--green-dim:rgba(0,212,170,0.1);--green-glow:rgba(0,212,170,0.22);
+  --red:#ff6b6b;--red-dim:rgba(255,107,107,0.1);
+  --amber:#ffb347;--amber-dim:rgba(255,179,71,0.1);
+  --blue:#4d9fff;--blue-dim:rgba(77,159,255,0.1);
+  --text:#e8edf5;--text2:#8a9ab5;--text3:#4a5a75;
+  --r:14px;--r-sm:8px;--r-xs:6px;
 }
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
-
-/* HEADER */
-header{border-bottom:1px solid var(--border);background:rgba(2,6,23,0.8);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100}
-.header-inner{max-width:1100px;margin:0 auto;padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
-.logo{text-decoration:none;display:flex;align-items:center;gap:12px}
-.logo-icon{font-size:24px;background:var(--surface2);padding:8px;border-radius:12px}
-.logo-name{font-family:'Sora',sans-serif;font-weight:800;font-size:18px;color:#fff}
-.logo-sub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
-
-/* HERO */
-.hero{text-align:center;padding:80px 24px 40px}
-h1{font-family:'Sora',sans-serif;font-size:clamp(32px,6vw,56px);font-weight:800;margin-bottom:16px}
-h1 span{color:var(--green)}
-.hero-p{color:var(--text2);max-width:600px;margin:0 auto 40px;font-size:18px}
-
-/* CARDS */
-.main{max-width:1100px;margin:0 auto;padding:0 24px 100px}
-.input-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));gap:32px;margin-bottom:40px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:24px;transition:0.3s}
-.card:focus-within{border-color:var(--green);box-shadow:0 0 20px var(--green-glow)}
-.card-title{font-family:'Sora',sans-serif;font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:10px;color:var(--text2)}
-
-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:16px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;resize:none;min-height:250px;outline:none}
-
-/* BUTTON */
-.btn-analyze{width:100%;background:var(--green);color:#000;padding:20px;border-radius:16px;border:none;font-family:'Sora',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:0.3s}
-.btn-analyze:hover{transform:translateY(-2px);box-shadow:0 10px 30px var(--green-glow)}
-
-/* RESULTS */
-#results-area{margin-top:60px;display:none}
-.score-hero{display:flex;align-items:center;gap:40px;background:var(--surface2);padding:40px;border-radius:32px;margin-bottom:32px}
-.score-circle{position:relative;width:150px;height:150px;display:flex;align-items:center;justify-content:center}
-.score-val{font-size:48px;font-weight:800;font-family:'Sora',sans-serif}
-
-/* UTILS */
-.kw-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.kw{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:600}
-.kw-match{background:rgba(16,185,129,0.1);color:var(--green)}
-.kw-miss{background:rgba(239,68,68,0.1);color:var(--red)}
-
-footer{text-align:center;padding:40px;border-top:1px solid var(--border);color:var(--text3);font-size:13px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:10px 20px;font-size:13px;color:var(--text);transition:0.3s;z-index:9999}
+#toast.show{transform:translateX(-50%) translateY(0)}
+header{border-bottom:1px solid var(--border);padding:12px 24px;background:rgba(6,12,24,0.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
+.header-inner{max-width:1140px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
+.logo-name{font-family:'Sora',sans-serif;font-weight:800;font-size:16px}
+.hero{text-align:center;padding:60px 24px 40px}
+h1{font-family:'Sora',sans-serif;font-size:clamp(30px,5vw,52px);font-weight:800;margin-bottom:14px}
+h1 em{font-style:normal;color:var(--green)}
+.main{max-width:1140px;margin:0 auto;padding:0 24px 80px}
+.input-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;margin-bottom:32px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.ic-tabs{display:flex;background:var(--surface2);border-radius:var(--r-xs);padding:4px;gap:4px;margin-bottom:12px}
+.ic-tab{flex:1;padding:8px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text3)}
+.ic-tab.active{background:var(--surface3);color:var(--text)}
+.upload-zone{padding:30px;text-align:center;border:2px dashed var(--border2);border-radius:var(--r-sm);cursor:pointer;background:var(--surface2)}
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;resize:none;outline:none}
+.btn-analyze{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#060c18;padding:18px;border-radius:var(--r-sm);border:none;font-family:'Sora',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:0.2s}
+.btn-analyze:disabled{opacity:0.6;cursor:not-allowed}
+#results-area{display:none;margin-top:40px}
+.score-hero{background:var(--surface);padding:32px;border-radius:var(--r);display:flex;align-items:center;gap:30px;margin-bottom:20px}
+.score-num{font-family:'Sora',sans-serif;font-size:48px;font-weight:800;color:var(--green)}
+.kw-grid{display:flex;flex-wrap:wrap;gap:8px}
+.kw{padding:6px 12px;border-radius:100px;font-size:12px;font-weight:600;font-family:'DM Mono'}
+.kw-match{background:var(--green-dim);color:var(--green)}
+.kw-miss{background:var(--red-dim);color:var(--red)}
+footer{text-align:center;padding:40px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)}
 footer a{color:var(--green);text-decoration:none}
 </style>
 </head>
 <body>
 
+<div id="toast"></div>
+
 <header>
   <div class="header-inner">
     <a class="logo" href="#">
-      <div class="logo-icon">🎯</div>
+      <div style="font-size:24px">🎯</div>
       <div>
         <div class="logo-name">CVScan AI</div>
-        <div class="logo-sub">By Sulisumen Peter</div>
+        <div style="font-size:10px;color:var(--text3)">by Sulisumen Peter</div>
       </div>
     </a>
+    <div style="font-size:11px;color:var(--text3)">● AI Ready — Free</div>
   </div>
 </header>
 
 <section class="hero">
-  <h1>Optimize Your Career <span>Insights</span></h1>
-  <p class="hero-p">A high-precision ATS analyzer designed to help Nigerian graduates bridge the gap between application and interview.</p>
+  <h1>Know Your Score<br/><em>Before You Apply</em></h1>
+  <p style="color:var(--text2);max-width:500px;margin:0 auto">Instant ATS analysis optimized for Nigerian graduates. Powered by Gemini 3 Flash.</p>
 </section>
 
 <main class="main">
   <div class="input-grid">
     <div class="card">
-      <div class="card-title">📄 Step 1: Your Resume Content</div>
-      <textarea id="cv-text" placeholder="Paste your full CV text here..."></textarea>
+      <div class="ic-tabs">
+        <button class="ic-tab active" onclick="switchTab('upload', this)">Upload File</button>
+        <button class="ic-tab" onclick="switchTab('paste', this)">Paste Text</button>
+      </div>
+      <div id="cv-upload-panel">
+        <div class="upload-zone" onclick="document.getElementById('cv-file-input').click()">
+          <div style="font-size:30px;margin-bottom:8px">📂</div>
+          <div style="font-weight:600">Click to upload CV</div>
+          <div style="font-size:11px;color:var(--text3)">PDF, DOCX, TXT</div>
+        </div>
+        <input type="file" id="cv-file-input" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileSelect(event)"/>
+        <div id="cv-file-info" style="display:none;margin-top:10px;font-size:12px;color:var(--green)">✅ File Loaded</div>
+      </div>
+      <div id="cv-paste-panel" style="display:none">
+        <textarea id="cv-text" rows="10" placeholder="Paste CV here..."></textarea>
+      </div>
     </div>
+
     <div class="card">
-      <div class="card-title">🎯 Step 2: Job Description</div>
-      <textarea id="jd-text" placeholder="Paste the Job Description here..."></textarea>
+      <div style="font-family:'Sora';font-size:13px;font-weight:600;margin-bottom:12px">🎯 Job Description</div>
+      <textarea id="jd-text" rows="12" placeholder="Paste Job Description here..."></textarea>
     </div>
   </div>
 
@@ -97,22 +104,19 @@ footer a{color:var(--green);text-decoration:none}
 
   <div id="results-area">
     <div class="score-hero">
-      <div class="score-circle">
-        <div class="score-val" id="score-num">0</div>
-      </div>
+      <div class="score-num" id="score-val">0</div>
       <div>
-        <h2 id="score-verdict" style="font-size:28px;margin-bottom:10px">Calculating...</h2>
-        <p id="score-desc" style="color:var(--text2)"></p>
+        <h2 id="score-verdict" style="font-family:'Sora';margin-bottom:5px">Analysis Result</h2>
+        <p id="score-desc" style="font-size:14px;color:var(--text2)"></p>
       </div>
     </div>
-
     <div class="input-grid">
       <div class="card">
-        <div class="card-title" style="color:var(--green)">✅ Matched Keywords</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--green)">✅ MATCHED KEYWORDS</div>
         <div class="kw-grid" id="kw-match"></div>
       </div>
       <div class="card">
-        <div class="card-title" style="color:var(--red)">❌ Missing Keywords</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--red)">❌ MISSING KEYWORDS</div>
         <div class="kw-grid" id="kw-miss"></div>
       </div>
     </div>
@@ -120,14 +124,87 @@ footer a{color:var(--green);text-decoration:none}
 </main>
 
 <footer>
-  <p>Designed and Developed by <a href="https://www.linkedin.com/in/sulisumen-peter/">Sulisumen Peter</a></p>
-  <p>Powered by Google Gemini 3 AI</p>
+  Built by <a href="https://www.linkedin.com/in/sulisumen-peter/">Sulisumen Peter</a> · Powered by Google Gemini AI
 </footer>
 
 <script>
-// Paste your existing JavaScript logic here from the original file 
-// (Starting from 'const MAX_CV' to the end of the script tag)
-</script>
+let cvTextContent = "";
+let currentTab = 'upload';
 
+function switchTab(mode, btn) {
+  currentTab = mode;
+  document.getElementById('cv-upload-panel').style.display = mode === 'upload' ? 'block' : 'none';
+  document.getElementById('cv-paste-panel').style.display = mode === 'paste' ? 'block' : 'none';
+  document.querySelectorAll('.ic-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  showToast("Reading file...");
+
+  try {
+    if (ext === 'pdf') {
+      const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+      let text = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(it => it.str).join(' ') + "\n";
+      }
+      cvTextContent = text;
+    } else if (ext === 'docx') {
+      const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+      cvTextContent = result.value;
+    } else {
+      cvTextContent = await file.text();
+    }
+    document.getElementById('cv-file-info').style.display = 'block';
+    showToast("CV Loaded!");
+  } catch (err) { showToast("Error reading file"); }
+}
+
+async function analyze() {
+  const cv = currentTab === 'paste' ? document.getElementById('cv-text').value : cvTextContent;
+  const jd = document.getElementById('jd-text').value;
+  if (!cv || !jd) return alert("Please provide both CV and Job Description");
+
+  const btn = document.getElementById('analyze-btn');
+  btn.disabled = true;
+  btn.innerText = "⏳ ANALYZING...";
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cv, jd })
+    });
+    
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // Render results
+    document.getElementById('results-area').style.display = 'block';
+    document.getElementById('score-val').innerText = data.score;
+    document.getElementById('kw-match').innerHTML = data.matched_keywords.map(k => `<span class="kw kw-match">${k}</span>`).join('');
+    document.getElementById('kw-miss').innerHTML = data.missing_keywords.map(k => `<span class="kw kw-miss">${k}</span>`).join('');
+    document.getElementById('score-desc').innerText = data.improvements[0] || "Analysis complete.";
+    
+    window.scrollTo({ top: document.getElementById('results-area').offsetTop - 100, behavior: 'smooth' });
+  } catch (err) { alert("Analysis failed: " + err.message); }
+  finally {
+    btn.disabled = false;
+    btn.innerText = "⚡ ANALYZE MY CV";
+  }
+}
+
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.innerText = m; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
 </body>
 </html>
