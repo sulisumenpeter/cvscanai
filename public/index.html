@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500;700&family=DM+Mono&display=swap" rel="stylesheet"/>
 <style>
-/* Exact CSS as before to maintain your premium look */
+/* CSS Variables & Global Styles */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#060c18;--surface:#0d1526;--surface2:#111d35;--surface3:#162240;
@@ -16,11 +16,21 @@
   --green:#00d4aa;--green2:#00b891;--green-dim:rgba(0,212,170,0.1);--green-glow:rgba(0,212,170,0.22);
   --red:#ff6b6b;--red-dim:rgba(255,107,107,0.1);
   --amber:#ffb347;--amber-dim:rgba(255,179,71,0.1);
-  --blue:#4d9fff;--blue-dim:rgba(77,159,255,0.1);
   --text:#e8edf5;--text2:#8a9ab5;--text3:#4a5a75;
   --r:14px;--r-sm:8px;--r-xs:6px;
 }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* SOCIAL ICONS CSS */
+.social-links { display: flex; gap: 12px; justify-content: center; margin-top: 15px; }
+.social-icon {
+  text-decoration: none; font-size: 18px; display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 50%; transition: 0.3s;
+}
+.social-icon:hover { transform: translateY(-3px); border-color: var(--green); background: var(--surface3); }
+
+/* EXISTING UI STYLES */
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:10px 20px;font-size:13px;color:var(--text);transition:0.3s;z-index:9999}
 #toast.show{transform:translateX(-50%) translateY(0)}
 header{border-bottom:1px solid var(--border);padding:12px 24px;background:rgba(6,12,24,0.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
@@ -39,7 +49,6 @@ h1 em{font-style:normal;color:var(--green)}
 .upload-zone{padding:30px;text-align:center;border:2px dashed var(--border2);border-radius:var(--r-sm);cursor:pointer;background:var(--surface2)}
 textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;resize:none;outline:none}
 .btn-analyze{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#060c18;padding:18px;border-radius:var(--r-sm);border:none;font-family:'Sora',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:0.2s}
-.btn-analyze:disabled{opacity:0.6;cursor:not-allowed}
 #results-area{display:none;margin-top:40px}
 .score-hero{background:var(--surface);padding:32px;border-radius:var(--r);display:flex;align-items:center;gap:30px;margin-bottom:20px}
 .score-num{font-family:'Sora',sans-serif;font-size:48px;font-weight:800;color:var(--green)}
@@ -61,150 +70,4 @@ footer a{color:var(--green);text-decoration:none}
       <div style="font-size:24px">🎯</div>
       <div>
         <div class="logo-name">CVScan AI</div>
-        <div style="font-size:10px;color:var(--text3)">by Sulisumen Peter</div>
-      </div>
-    </a>
-    <div style="font-size:11px;color:var(--text3)">● AI Ready — Free</div>
-  </div>
-</header>
-
-<section class="hero">
-  <h1>Know Your Score<br/><em>Before You Apply</em></h1>
-  <p style="color:var(--text2);max-width:500px;margin:0 auto">Instant ATS analysis optimized for Nigerian graduates. Powered by Gemini 3 Flash.</p>
-</section>
-
-<main class="main">
-  <div class="input-grid">
-    <div class="card">
-      <div class="ic-tabs">
-        <button class="ic-tab active" onclick="switchTab('upload', this)">Upload File</button>
-        <button class="ic-tab" onclick="switchTab('paste', this)">Paste Text</button>
-      </div>
-      <div id="cv-upload-panel">
-        <div class="upload-zone" onclick="document.getElementById('cv-file-input').click()">
-          <div style="font-size:30px;margin-bottom:8px">📂</div>
-          <div style="font-weight:600">Click to upload CV</div>
-          <div style="font-size:11px;color:var(--text3)">PDF, DOCX, TXT</div>
-        </div>
-        <input type="file" id="cv-file-input" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileSelect(event)"/>
-        <div id="cv-file-info" style="display:none;margin-top:10px;font-size:12px;color:var(--green)">✅ File Loaded</div>
-      </div>
-      <div id="cv-paste-panel" style="display:none">
-        <textarea id="cv-text" rows="10" placeholder="Paste CV here..."></textarea>
-      </div>
-    </div>
-
-    <div class="card">
-      <div style="font-family:'Sora';font-size:13px;font-weight:600;margin-bottom:12px">🎯 Job Description</div>
-      <textarea id="jd-text" rows="12" placeholder="Paste Job Description here..."></textarea>
-    </div>
-  </div>
-
-  <button class="btn-analyze" id="analyze-btn" onclick="analyze()">⚡ ANALYZE MY CV</button>
-
-  <div id="results-area">
-    <div class="score-hero">
-      <div class="score-num" id="score-val">0</div>
-      <div>
-        <h2 id="score-verdict" style="font-family:'Sora';margin-bottom:5px">Analysis Result</h2>
-        <p id="score-desc" style="font-size:14px;color:var(--text2)"></p>
-      </div>
-    </div>
-    <div class="input-grid">
-      <div class="card">
-        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--green)">✅ MATCHED KEYWORDS</div>
-        <div class="kw-grid" id="kw-match"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--red)">❌ MISSING KEYWORDS</div>
-        <div class="kw-grid" id="kw-miss"></div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<footer>
-  Built by <a href="https://www.linkedin.com/in/sulisumen-peter/">Sulisumen Peter</a> · Powered by Google Gemini AI
-</footer>
-
-<script>
-let cvTextContent = "";
-let currentTab = 'upload';
-
-function switchTab(mode, btn) {
-  currentTab = mode;
-  document.getElementById('cv-upload-panel').style.display = mode === 'upload' ? 'block' : 'none';
-  document.getElementById('cv-paste-panel').style.display = mode === 'paste' ? 'block' : 'none';
-  document.querySelectorAll('.ic-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-async function handleFileSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const ext = file.name.split('.').pop().toLowerCase();
-  showToast("Reading file...");
-
-  try {
-    if (ext === 'pdf') {
-      const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-      let text = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        text += content.items.map(it => it.str).join(' ') + "\n";
-      }
-      cvTextContent = text;
-    } else if (ext === 'docx') {
-      const result = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
-      cvTextContent = result.value;
-    } else {
-      cvTextContent = await file.text();
-    }
-    document.getElementById('cv-file-info').style.display = 'block';
-    showToast("CV Loaded!");
-  } catch (err) { showToast("Error reading file"); }
-}
-
-async function analyze() {
-  const cv = currentTab === 'paste' ? document.getElementById('cv-text').value : cvTextContent;
-  const jd = document.getElementById('jd-text').value;
-  if (!cv || !jd) return alert("Please provide both CV and Job Description");
-
-  const btn = document.getElementById('analyze-btn');
-  btn.disabled = true;
-  btn.innerText = "⏳ ANALYZING...";
-
-  try {
-    const res = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cv, jd })
-    });
-    
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-
-    // Render results
-    document.getElementById('results-area').style.display = 'block';
-    document.getElementById('score-val').innerText = data.score;
-    document.getElementById('kw-match').innerHTML = data.matched_keywords.map(k => `<span class="kw kw-match">${k}</span>`).join('');
-    document.getElementById('kw-miss').innerHTML = data.missing_keywords.map(k => `<span class="kw kw-miss">${k}</span>`).join('');
-    document.getElementById('score-desc').innerText = data.improvements[0] || "Analysis complete.";
-    
-    window.scrollTo({ top: document.getElementById('results-area').offsetTop - 100, behavior: 'smooth' });
-  } catch (err) { alert("Analysis failed: " + err.message); }
-  finally {
-    btn.disabled = false;
-    btn.innerText = "⚡ ANALYZE MY CV";
-  }
-}
-
-function showToast(m) {
-  const t = document.getElementById('toast');
-  t.innerText = m; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-</script>
-</body>
-</html>
+        <div style="font-size:10px;color:var(--text3)">by Sulisumen
