@@ -4,154 +4,298 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CVScan AI — ATS Analyzer | Sulisumen Peter</title>
+
+<!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=DM+Sans:wght@400;500;700&family=DM+Mono&display=swap" rel="stylesheet"/>
-<style>
-/* CSS Variables & Styling */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#060c18;--surface:#0d1526;--surface2:#111d35;--surface3:#162240;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
-  --green:#00d4aa;--green2:#00b891;--green-dim:rgba(0,212,170,0.1);--green-glow:rgba(0,212,170,0.22);
-  --red:#ff6b6b;--red-dim:rgba(255,107,107,0.1);
-  --amber:#ffb347;--text:#e8edf5;--text2:#8a9ab5;--text3:#4a5a75;
-  --r:14px;--r-sm:8px;
-}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-/* HEADER & HERO */
-header{border-bottom:1px solid var(--border);padding:12px 24px;background:rgba(6,12,24,0.85);backdrop-filter:blur(12px);position:sticky;top:0;z-index:10}
-.header-inner{max-width:1140px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
-.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
-.logo-name{font-family:'Sora',sans-serif;font-weight:800;font-size:16px}
-.hero{text-align:center;padding:60px 24px 40px}
-h1{font-family:'Sora',sans-serif;font-size:clamp(30px,5vw,52px);font-weight:800;margin-bottom:14px}
-h1 em{font-style:normal;color:var(--green)}
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-/* MAIN INPUTS */
-.main{max-width:1140px;margin:0 auto;padding:0 24px 80px}
-.input-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;margin-bottom:32px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
-.ic-tabs{display:flex;background:var(--surface2);border-radius:4px;padding:4px;gap:4px;margin-bottom:12px}
-.ic-tab{flex:1;padding:8px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--text3)}
-.ic-tab.active{background:var(--surface3);color:var(--text)}
+<!-- Typography -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-/* UPLOAD AREA */
-.upload-zone{padding:30px;text-align:center;border:2px dashed var(--border2);border-radius:var(--r-sm);cursor:pointer;background:var(--surface2);transition:0.3s}
-.upload-zone:hover{border-color:var(--green);background:var(--green-dim)}
-#cv-file-info{display:none;margin-top:12px;padding:12px;background:var(--surface3);border-radius:8px;border:1px solid var(--green-dim);align-items:center;gap:10px}
-.file-name-display{font-family:'DM Mono',monospace;font-size:12px;color:var(--green);word-break:break-all;flex:1}
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'sans-serif'],
+          heading: ['Outfit', 'system-ui', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+        },
+        colors: {
+          accent: {
+            50: '#eef2ff',
+            100: '#e0e7ff',
+            200: '#c7d2fe',
+            300: '#a5b4fc',
+            400: '#818cf8',
+            500: '#6366f1', // Electric Indigo
+            600: '#4f46e5',
+            900: '#312e81',
+          },
+          dark: {
+            bg: '#09090b',       // zinc-950
+            surface: '#18181b',  // zinc-900
+            border: '#27272a',   // zinc-800
+          }
+        },
+        boxShadow: {
+          'glow': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
+          'glow-lg': '0 0 30px -5px rgba(99, 102, 241, 0.5)',
+        }
+      }
+    }
+  }
+</script>
 
-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:16px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;resize:none;outline:none}
-.btn-analyze{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#060c18;padding:18px;border-radius:var(--r-sm);border:none;font-family:'Sora',sans-serif;font-weight:800;font-size:16px;cursor:pointer}
-.btn-analyze:disabled{opacity:0.6;cursor:not-allowed}
+<style type="text/tailwindcss">
+  @layer utilities {
+    .glass-panel {
+      @apply bg-dark-surface/60 backdrop-blur-xl border border-dark-border;
+    }
+    .text-gradient {
+      @apply text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-cyan-400;
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  }
 
-/* RESULTS */
-#results-area{display:none;margin-top:40px}
-.score-hero{background:var(--surface);padding:32px;border-radius:var(--r);display:flex;align-items:center;gap:30px;margin-bottom:20px}
-.score-num{font-family:'Sora',sans-serif;font-size:48px;font-weight:800;color:var(--green)}
-.kw-grid{display:flex;flex-wrap:wrap;gap:8px}
-.kw{padding:6px 12px;border-radius:100px;font-size:12px;font-weight:600;font-family:'DM Mono'}
-.kw-match{background:var(--green-dim);color:var(--green)}
-.kw-miss{background:var(--red-dim);color:var(--red)}
+  @layer components {
+    /* Mapped JS dynamic classes */
+    .ic-tab {
+      @apply flex-1 py-2 px-4 text-sm font-medium text-zinc-500 rounded-lg transition-all duration-300 hover:text-zinc-300;
+    }
+    .ic-tab.active {
+      @apply bg-zinc-800/80 text-white shadow-sm border border-zinc-700/50;
+    }
 
-/* FOOTER & SOCIALS */
-footer{text-align:center;padding:40px;border-top:1px solid var(--border);font-size:12px;color:var(--text3)}
-footer a{color:var(--green);text-decoration:none}
-.social-links { display: flex; gap: 12px; justify-content: center; margin-top: 15px; }
-.social-icon { text-decoration: none; width: 38px; height: 38px; background: var(--surface2); border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-.social-icon:hover { transform: translateY(-3px); border-color: var(--green); }
+    .kw {
+      @apply px-3 py-1.5 rounded-md text-xs font-mono tracking-wide inline-flex items-center gap-1.5 transition-colors border;
+    }
+    .kw-match {
+      @apply bg-accent-500/10 text-accent-300 border-accent-500/20 shadow-[inset_0_1px_0_0_rgba(99,102,241,0.2)];
+    }
+    .kw-miss {
+      @apply bg-red-500/10 text-red-400 border-red-500/20 shadow-[inset_0_1px_0_0_rgba(239,68,68,0.2)];
+    }
 
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:10px 20px;font-size:13px;color:var(--text);transition:0.3s;z-index:9999}
-#toast.show{transform:translateX(-50%) translateY(0)}
+    /* Sleek Scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { @apply bg-zinc-800 rounded-full; }
+    ::-webkit-scrollbar-thumb:hover { @apply bg-zinc-700; }
+
+    /* Toast */
+    #toast {
+      @apply fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-[120%] bg-zinc-800/90 backdrop-blur-md border border-zinc-700 text-zinc-100 px-5 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-transform duration-300 z-50 flex items-center gap-2 opacity-0 pointer-events-none;
+    }
+    #toast.show {
+      @apply translate-y-0 opacity-100;
+    }
+  }
 </style>
 </head>
-<body>
+<body class="bg-dark-bg text-zinc-300 min-h-screen flex flex-col antialiased selection:bg-accent-500/30 selection:text-white font-sans overflow-x-hidden">
 
-<div id="toast"></div>
+<!-- Dynamic Background Glows -->
+<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+  <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-accent-600/10 blur-[120px]"></div>
+  <div class="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full bg-cyan-600/10 blur-[100px]"></div>
+</div>
 
-<header>
-  <div class="header-inner">
-    <a class="logo" href="#">
-      <div style="font-size:24px">🎯</div>
-      <div>
-        <div class="logo-name">CVScan AI</div>
-        <div style="font-size:10px;color:var(--text3)">by Sulisumen Peter</div>
+<!-- Toast Notification -->
+<div id="toast">
+  <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+  <span id="toast-msg">Notification</span>
+</div>
+
+<!-- Navigation Header -->
+<header class="sticky top-0 z-40 w-full glass-panel border-b-dark-border/80 border-t-0 border-x-0">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a class="flex items-center gap-3 group" href="#">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-all duration-500">
+        <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-heading font-semibold text-white tracking-wide text-base leading-tight">CVScan<span class="text-accent-400">AI</span></span>
       </div>
     </a>
+    <div class="text-[10px] text-zinc-500 font-mono tracking-widest uppercase border border-zinc-800 px-2 py-1 rounded-md bg-zinc-900/50">
+      
+    </div>
   </div>
 </header>
 
-<section class="hero">
-  <h1>Know Your CV's ATS Score<br/><em>Before You Apply</em></h1>
-  <p style="color:var(--text2);max-width:500px;margin:0 auto">Upload your CV, paste a job description, and get an instant AI-powered ATS analysis with scores and keyword gaps.Powered by Artificial Intelligence</p>
+<!-- Hero Section -->
+<section class="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
+  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-mono mb-8 shadow-sm">
+    <span class="relative flex h-2 w-2">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-50"></span>
+      <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
+    </span>
+    System Online // ATS Engine
+  </div>
+  <h1 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6 leading-[1.1]">
+    Know Your CV's ATS Score<br class="hidden md:block"/>
+    <em class="not-italic text-gradient">Before You Apply</em>
+  </h1>
+  <p class="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed font-light">
+    Upload your CV, paste a job description, and get an instant analysis with scores and keyword gaps.
+  </p>
 </section>
 
-<main class="main">
-  <div class="input-grid">
-    <div class="card">
-      <div class="ic-tabs">
-        <button class="ic-tab active" onclick="switchTab('upload', this)">Upload File</button>
-        <button class="ic-tab" onclick="switchTab('paste', this)">Paste Text</button>
+<!-- Main Interface -->
+<main class="relative z-10 max-w-6xl mx-auto px-6 pb-24 flex-1 w-full">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    
+    <!-- Left Column: CV Input -->
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center gap-2 px-1 text-zinc-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <span class="font-heading font-medium text-sm tracking-wide">Resume Payload</span>
       </div>
-      <div id="cv-upload-panel">
-        <div class="upload-zone" onclick="document.getElementById('cv-file-input').click()">
-          <div style="font-size:30px;margin-bottom:8px">📂</div>
-          <div style="font-weight:600">Click to upload CV</div>
-          <div style="font-size:11px;color:var(--text3)">PDF, DOCX, TXT</div>
+      
+      <div class="glass-panel rounded-2xl p-2 flex flex-col h-[400px] relative overflow-hidden group">
+        <div class="bg-dark-bg/80 p-1 rounded-xl flex mb-2 shrink-0 border border-zinc-800/80">
+          <button class="ic-tab active" onclick="switchTab('upload', this)">Upload File</button>
+          <button class="ic-tab" onclick="switchTab('paste', this)">Raw Text</button>
         </div>
-        <input type="file" id="cv-file-input" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileSelect(event)"/>
         
-        <div id="cv-file-info">
-          <span>📄</span>
-          <div class="file-name-display" id="display-file-name">No file selected</div>
-          <div style="cursor:pointer;color:var(--red)" onclick="clearFile()">✕</div>
+        <!-- Upload Panel -->
+        <div id="cv-upload-panel" class="flex-1 flex flex-col relative w-full h-full mt-1">
+          <div class="upload-zone flex-1 border border-dashed border-zinc-700/80 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-accent-500/50 hover:bg-accent-500/[0.02] transition-all p-6 text-center" onclick="document.getElementById('cv-file-input').click()">
+            <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:text-accent-400 group-hover:border-accent-500/30">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            </div>
+            <div class="font-medium text-zinc-300 mb-1">Click to browse files</div>
+            <div class="text-[11px] text-zinc-500 font-mono">PDF, DOCX, TXT</div>
+          </div>
+          <input type="file" id="cv-file-input" accept=".pdf,.docx,.txt" class="hidden" onchange="handleFileSelect(event)"/>
+          
+          <!-- File Info Overlay -->
+          <div id="cv-file-info" class="hidden absolute inset-0 bg-dark-surface/95 backdrop-blur-md rounded-xl flex-col items-center justify-center p-6 text-center z-10 border border-accent-500/30">
+            <div class="w-14 h-14 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-4 text-accent-400">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div class="file-name-display font-mono text-xs text-zinc-200 truncate w-full px-4 mb-6" id="display-file-name">No file selected</div>
+            <button class="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 text-zinc-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-2" onclick="clearFile()">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              Remove
+            </button>
+          </div>
         </div>
-      </div>
-      <div id="cv-paste-panel" style="display:none">
-        <textarea id="cv-text" rows="10" placeholder="Paste CV text here..."></textarea>
+        
+        <!-- Paste Panel -->
+        <div id="cv-paste-panel" class="hidden flex-1 h-full w-full mt-1">
+          <textarea id="cv-text" class="w-full h-full p-4 bg-dark-bg/50 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-accent-500/50 focus:border-accent-500 transition-all outline-none resize-none text-[13px] leading-relaxed font-mono text-zinc-300 placeholder-zinc-600" placeholder="Paste raw CV text..."></textarea>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <div style="font-family:'Sora';font-size:13px;font-weight:600;margin-bottom:12px">🎯 Job Description</div>
-      <textarea id="jd-text" rows="12" placeholder="Paste Job Description here..."></textarea>
+    <!-- Right Column: Job Description Input -->
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center gap-2 px-1 text-zinc-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        <span class="font-heading font-medium text-sm tracking-wide">Job Description Parameters</span>
+      </div>
+      <div class="glass-panel rounded-2xl p-2 h-[400px]">
+        <textarea id="jd-text" class="w-full h-full p-4 bg-dark-bg/50 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-accent-500/50 focus:border-accent-500 transition-all outline-none resize-none text-[13px] leading-relaxed font-mono text-zinc-300 placeholder-zinc-600" placeholder="Paste target job description..."></textarea>
+      </div>
     </div>
+    
   </div>
 
-  <button class="btn-analyze" id="analyze-btn" onclick="analyze()">⚡ ANALYZE MY CV</button>
+  <!-- Analyze Action -->
+  <div class="flex justify-center max-w-sm mx-auto mt-6">
+    <button class="relative w-full inline-flex items-center justify-center gap-2 bg-zinc-100 hover:bg-white disabled:bg-accent-600 disabled:hover:bg-accent-600 text-zinc-900 disabled:text-white px-6 py-3.5 rounded-full font-heading font-semibold text-sm transition-all duration-500 active:scale-[0.98] disabled:active:scale-100 disabled:cursor-wait shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] disabled:shadow-glow disabled:hover:shadow-glow" id="analyze-btn" onclick="analyze()">
+      <span class="relative flex items-center gap-2" id="analyze-btn-content">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        INITIATE ANALYSIS
+      </span>
+    </button>
+  </div>
 
-  <div id="results-area">
-    <div class="score-hero">
-      <div class="score-num" id="score-val">0</div>
-      <div>
-        <h2 id="score-verdict" style="font-family:'Sora';margin-bottom:5px">Analysis Ready</h2>
-        <p id="score-desc" style="font-size:14px;color:var(--text2)"></p>
+  <!-- Results Section -->
+  <div id="results-area" class="hidden mt-20 animate-fade-in">
+    
+    <!-- Score Hero -->
+    <div class="glass-panel rounded-3xl p-8 md:p-10 mb-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+      <!-- Decor -->
+      <div class="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-accent-500/5 to-transparent pointer-events-none"></div>
+      
+      <div class="relative shrink-0 flex flex-col items-center justify-center w-32 h-32 rounded-full border border-zinc-800 bg-zinc-900/50 shadow-inner">
+        <div class="font-heading text-5xl font-bold text-white tracking-tighter" id="score-val">0</div>
+        <div class="text-[9px] font-mono text-accent-400 uppercase tracking-[0.2em] mt-1">Match Rate</div>
+      </div>
+
+      <div class="relative flex-1 text-center md:text-left">
+        <h2 class="font-heading text-xl font-medium text-white mb-2 flex items-center gap-2 justify-center md:justify-start" id="score-verdict">
+          <div class="w-2 h-2 rounded-full bg-accent-400 animate-pulse"></div>
+          Analysis Complete
+        </h2>
+        <p class="text-zinc-400 text-sm leading-relaxed max-w-2xl font-light" id="score-desc"></p>
       </div>
     </div>
-    <div class="input-grid">
-      <div class="card">
-        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--green)">✅ MATCHED KEYWORDS</div>
-        <div class="kw-grid" id="kw-match"></div>
+
+    <!-- Keyword Breakdowns -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Matched Keywords -->
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-accent-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <h4 class="font-heading font-medium text-white text-sm">Matched Keywords</h4>
+        </div>
+        <div class="kw-grid flex flex-wrap gap-2" id="kw-match"></div>
       </div>
-      <div class="card">
-        <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--red)">❌ MISSING KEYWORDS</div>
-        <div class="kw-grid" id="kw-miss"></div>
+
+      <!-- Missing Keywords -->
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-red-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </div>
+          <h4 class="font-heading font-medium text-white text-sm">Missing Keywords</h4>
+        </div>
+        <div class="kw-grid flex flex-wrap gap-2" id="kw-miss"></div>
       </div>
+      
     </div>
   </div>
 </main>
 
-<footer>
-  <p>Designed and Developed by <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank">Sulisumen Peter</a></p>
-  <div class="social-links">
-    <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank" class="social-icon">💙</a>
-    <a href="https://web.facebook.com/profile.php?id=100069561936419" target="_blank" class="social-icon">👤</a>
+<!-- Footer -->
+<footer class="border-t border-zinc-800/50 mt-auto bg-dark-bg">
+  <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex flex-col items-center md:items-start gap-1">
+      <p class="text-zinc-500 text-xs">Developed by <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank" class="text-zinc-300 hover:text-white transition-colors">Sulisumen Peter</a></p>
+      <p class="text-zinc-600 text-[10px] font-mono uppercase tracking-widest">Powered by AI</p>
+    </div>
+    
+    <div class="social-links flex items-center gap-2">
+      <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank" class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all" aria-label="LinkedIn">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+      </a>
+      <a href="https://web.facebook.com/profile.php?id=100069561936419" target="_blank" class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all" aria-label="Facebook">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+      </a>
+    </div>
   </div>
-  <p style="margin-top: 15px;">Powered by Artificial Intelligence</p>
 </footer>
 
+<!-- Original Logic untouched -->
 <script>
 let cvTextContent = "";
 let currentTab = 'upload';
@@ -159,15 +303,15 @@ let currentTab = 'upload';
 // SANITIZER TO LOCK SCORES
 function sanitizeText(text) {
   return text
-    .replace(/[^\x20-\x7E\n]/g, '') // Remove non-printable characters
-    .replace(/\s+/g, ' ')            // Normalize spaces
+    .replace(/[^\x20-\x7E\n]/g, '') 
+    .replace(/\s+/g, ' ')            
     .trim()
     .toLowerCase();
 }
 
 function switchTab(mode, btn) {
   currentTab = mode;
-  document.getElementById('cv-upload-panel').style.display = mode === 'upload' ? 'block' : 'none';
+  document.getElementById('cv-upload-panel').style.display = mode === 'upload' ? 'flex' : 'none';
   document.getElementById('cv-paste-panel').style.display = mode === 'paste' ? 'block' : 'none';
   document.querySelectorAll('.ic-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
@@ -177,7 +321,6 @@ async function handleFileSelect(e) {
   const file = e.target.files[0];
   if (!file) return;
   
-  // Show the FULL name
   document.getElementById('display-file-name').innerText = file.name;
   document.getElementById('cv-file-info').style.display = 'flex';
   
@@ -221,8 +364,13 @@ async function analyze() {
   jd = sanitizeText(jd);
 
   const btn = document.getElementById('analyze-btn');
+  const btnContent = document.getElementById('analyze-btn-content');
+  
   btn.disabled = true;
-  btn.innerText = "⏳ LOCKING ANALYSIS...";
+  btnContent.innerHTML = `
+    <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+    PROCESSING...
+  `;
 
   try {
     const res = await fetch('/api/analyze', {
@@ -244,13 +392,23 @@ async function analyze() {
   } catch (err) { alert("Analysis failed: " + err.message); }
   finally {
     btn.disabled = false;
-    btn.innerText = "⚡ ANALYZE MY CV";
+    btnContent.innerHTML = `
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+      INITIATE ANALYSIS
+    `;
   }
 }
 
 function showToast(m) {
   const t = document.getElementById('toast');
-  t.innerText = m; t.classList.add('show');
+  const span = document.getElementById('toast-msg') || t; 
+  if(document.getElementById('toast-msg')) {
+     document.getElementById('toast-msg').innerText = m;
+  } else {
+     t.innerText = m;
+  }
+  
+  t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
