@@ -9,8 +9,8 @@ async function tryGemini(cv, jd) {
   const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) throw new Error("GEMINI_API_KEY is missing");
   
-  // Using the latest 2.0-flash model for current API availability
-  const MODEL = 'gemini-2.0-flash';
+  // Using the exact version explicitly requested by the API
+  const MODEL = 'gemini-3.6-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
   const res = await fetch(url, {
