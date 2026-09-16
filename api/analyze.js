@@ -4,11 +4,13 @@
 const getSystemPrompt = () => `You are a professional ATS analyzer. Return ONLY a valid JSON object.
 Format: {"score": 0, "matched_keywords": [], "missing_keywords": [], "strengths": [], "improvements": []}`;
 
+// --- PROVIDER 1: GEMINI (Primary) ---
 async function tryGemini(cv, jd) {
   const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) throw new Error("GEMINI_API_KEY is missing");
   
-  const MODEL = 'gemini-1.5-flash';
+  // Using a universally supported model name
+  const MODEL = 'gemini-1.5-flash-latest';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
   const res = await fetch(url, {
@@ -22,11 +24,16 @@ async function tryGemini(cv, jd) {
   
   const data = await res.json();
   if (data.error) throw new Error(data.error.message || "Gemini API Error");
+  if (!data.candidates || !data.candidates[0]) {
+    // If it still fails, fallback to gemini-pro 1.0 format just in case
+    throw new Error("Unexpected Gemini response: " + JSON.stringify(data));
+  }
   
   const rawText = data.candidates[0].content.parts[0].text;
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
 }
 
+// --- PROVIDER 2: CEREBRAS AI (Fallback) ---
 async function tryCerebras(cv, jd) {
   const API_KEY = process.env.CEREBRAS_API_KEY;
   if (!API_KEY) throw new Error("CEREBRAS_API_KEY is missing");
@@ -48,7 +55,12 @@ async function tryCerebras(cv, jd) {
   });
   
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message || "Cerebras API Error");
+  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+  
+  // Safely check if choices exist to prevent the "Cannot read properties of undefined" error
+  if (!data.choices || !data.choices[0]) {
+     throw new Error("Unexpected Cerebras response: " + JSON.stringify(data));
+  }
   
   const rawText = data.choices[0].message.content;
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
