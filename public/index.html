@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>CVScan AI — ATS Analyzer | Sulisumen Peter</title>
+<title>CVScan AI — ATS Analyzer Dashboard</title>
 
 <!-- Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -15,38 +15,23 @@
 <!-- Typography -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script>
   tailwind.config = {
-    darkMode: 'class',
     theme: {
       extend: {
         fontFamily: {
           sans: ['Inter', 'system-ui', 'sans-serif'],
-          heading: ['Outfit', 'system-ui', 'sans-serif'],
-          mono: ['JetBrains Mono', 'monospace'],
         },
         colors: {
-          accent: {
+          indigo: {
             50: '#eef2ff',
             100: '#e0e7ff',
-            200: '#c7d2fe',
-            300: '#a5b4fc',
-            400: '#818cf8',
-            500: '#6366f1', // Electric Indigo
+            500: '#6366f1',
             600: '#4f46e5',
-            900: '#312e81',
-          },
-          dark: {
-            bg: '#09090b',       // zinc-950
-            surface: '#18181b',  // zinc-900
-            border: '#27272a',   // zinc-800
+            700: '#4338ca',
           }
-        },
-        boxShadow: {
-          'glow': '0 0 20px -5px rgba(99, 102, 241, 0.4)',
-          'glow-lg': '0 0 30px -5px rgba(99, 102, 241, 0.5)',
         }
       }
     }
@@ -54,50 +39,28 @@
 </script>
 
 <style type="text/tailwindcss">
-  @layer utilities {
-    .glass-panel {
-      @apply bg-dark-surface/60 backdrop-blur-xl border border-dark-border;
-    }
-    .text-gradient {
-      @apply text-transparent bg-clip-text bg-gradient-to-r from-accent-400 to-cyan-400;
-    }
-    .animate-fade-in {
-      animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  }
-
   @layer components {
-    /* Mapped JS dynamic classes */
+    /* JS dynamic classes */
     .ic-tab {
-      @apply flex-1 py-2 px-4 text-sm font-medium text-zinc-500 rounded-lg transition-all duration-300 hover:text-zinc-300;
+      @apply px-4 py-2 text-sm font-medium text-gray-500 rounded-md transition-all duration-200 hover:text-gray-700;
     }
     .ic-tab.active {
-      @apply bg-zinc-800/80 text-white shadow-sm border border-zinc-700/50;
+      @apply bg-white text-gray-900 shadow-sm ring-1 ring-gray-900/5;
     }
 
     .kw {
-      @apply px-3 py-1.5 rounded-md text-xs font-mono tracking-wide inline-flex items-center gap-1.5 transition-colors border;
+      @apply px-3 py-1.5 rounded-full text-sm font-medium inline-flex items-center gap-1.5 transition-colors border;
     }
     .kw-match {
-      @apply bg-accent-500/10 text-accent-300 border-accent-500/20 shadow-[inset_0_1px_0_0_rgba(99,102,241,0.2)];
+      @apply bg-green-50 text-green-700 border-green-200;
     }
     .kw-miss {
-      @apply bg-red-500/10 text-red-400 border-red-500/20 shadow-[inset_0_1px_0_0_rgba(239,68,68,0.2)];
+      @apply bg-red-50 text-red-700 border-red-200;
     }
-
-    /* Sleek Scrollbar */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { @apply bg-zinc-800 rounded-full; }
-    ::-webkit-scrollbar-thumb:hover { @apply bg-zinc-700; }
 
     /* Toast */
     #toast {
-      @apply fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-[120%] bg-zinc-800/90 backdrop-blur-md border border-zinc-700 text-zinc-100 px-5 py-2.5 rounded-full text-sm font-medium shadow-2xl transition-transform duration-300 z-50 flex items-center gap-2 opacity-0 pointer-events-none;
+      @apply fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-[120%] bg-gray-900 text-white px-5 py-3 rounded-lg text-sm font-medium shadow-xl transition-transform duration-300 z-50 flex items-center gap-3 opacity-0 pointer-events-none;
     }
     #toast.show {
       @apply translate-y-0 opacity-100;
@@ -105,169 +68,161 @@
   }
 </style>
 </head>
-<body class="bg-dark-bg text-zinc-300 min-h-screen flex flex-col antialiased selection:bg-accent-500/30 selection:text-white font-sans overflow-x-hidden">
-
-<!-- Dynamic Background Glows -->
-<div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-  <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-accent-600/10 blur-[120px]"></div>
-  <div class="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] rounded-full bg-cyan-600/10 blur-[100px]"></div>
-</div>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased font-sans">
 
 <!-- Toast Notification -->
 <div id="toast">
-  <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+  <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
   <span id="toast-msg">Notification</span>
 </div>
 
 <!-- Navigation Header -->
-<header class="sticky top-0 z-40 w-full glass-panel border-b-dark-border/80 border-t-0 border-x-0">
-  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+<header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <a class="flex items-center gap-3 group" href="#">
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700 flex items-center justify-center shadow-glow group-hover:shadow-glow-lg transition-all duration-500">
-        <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+      <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
       </div>
-      <div class="flex flex-col">
-        <span class="font-heading font-semibold text-white tracking-wide text-base leading-tight">CVScan<span class="text-accent-400">AI</span></span>
-      </div>
+      <span class="font-bold text-gray-900 text-lg tracking-tight">CVScan<span class="text-indigo-600">AI</span></span>
     </a>
-    <div class="text-[10px] text-zinc-500 font-mono tracking-widest uppercase border border-zinc-800 px-2 py-1 rounded-md bg-zinc-900/50">
-      
+    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-2.5 py-1 rounded-md">
+      ATS Dashboard
     </div>
   </div>
 </header>
 
-<!-- Hero Section -->
-<section class="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
-  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-mono mb-8 shadow-sm">
-    <span class="relative flex h-2 w-2">
-      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-50"></span>
-      <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
-    </span>
-    System Online // ATS Engine
+<!-- Main Container -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
+  
+  <!-- Hero Section -->
+  <div class="text-center max-w-3xl mx-auto mb-12">
+    <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl mb-4">
+      Intelligent ATS Resume Analysis
+    </h1>
+    <p class="text-lg text-gray-500 leading-relaxed">
+      Ensure your resume bypasses Applicant Tracking Systems. Upload your CV and target job description to instantly uncover your ATS match score and keyword gaps.
+    </p>
   </div>
-  <h1 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6 leading-[1.1]">
-    Know Your CV's ATS Score<br class="hidden md:block"/>
-    <em class="not-italic text-gradient">Before You Apply</em>
-  </h1>
-  <p class="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed font-light">
-    Upload your CV, paste a job description, and get an instant analysis with scores and keyword gaps.
-  </p>
-</section>
 
-<!-- Main Interface -->
-<main class="relative z-10 max-w-6xl mx-auto px-6 pb-24 flex-1 w-full">
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <!-- Input Area -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
     
     <!-- Left Column: CV Input -->
-    <div class="flex flex-col gap-3">
-      <div class="flex items-center gap-2 px-1 text-zinc-400">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-        <span class="font-heading font-medium text-sm tracking-wide">Resume Payload</span>
-      </div>
-      
-      <div class="glass-panel rounded-2xl p-2 flex flex-col h-[400px] relative overflow-hidden group">
-        <div class="bg-dark-bg/80 p-1 rounded-xl flex mb-2 shrink-0 border border-zinc-800/80">
+    <div class="flex flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <label class="block text-sm font-semibold text-gray-700">Resume / CV</label>
+        <div class="bg-gray-100 p-1 rounded-lg inline-flex">
           <button class="ic-tab active" onclick="switchTab('upload', this)">Upload File</button>
           <button class="ic-tab" onclick="switchTab('paste', this)">Raw Text</button>
         </div>
+      </div>
+      
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm h-[360px] relative overflow-hidden flex flex-col">
         
         <!-- Upload Panel -->
-        <div id="cv-upload-panel" class="flex-1 flex flex-col relative w-full h-full mt-1">
-          <div class="upload-zone flex-1 border border-dashed border-zinc-700/80 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-accent-500/50 hover:bg-accent-500/[0.02] transition-all p-6 text-center" onclick="document.getElementById('cv-file-input').click()">
-            <div class="w-12 h-12 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:text-accent-400 group-hover:border-accent-500/30">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+        <div id="cv-upload-panel" class="flex-1 flex flex-col p-6 w-full h-full relative">
+          <div class="flex-1 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-colors text-center" onclick="document.getElementById('cv-file-input').click()">
+            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
             </div>
-            <div class="font-medium text-zinc-300 mb-1">Click to browse files</div>
-            <div class="text-[11px] text-zinc-500 font-mono">PDF, DOCX, TXT</div>
+            <p class="text-sm font-semibold text-gray-900 mb-1">Click to upload your resume</p>
+            <p class="text-xs text-gray-500">Supports PDF, DOCX, and TXT</p>
           </div>
           <input type="file" id="cv-file-input" accept=".pdf,.docx,.txt" class="hidden" onchange="handleFileSelect(event)"/>
           
           <!-- File Info Overlay -->
-          <div id="cv-file-info" class="hidden absolute inset-0 bg-dark-surface/95 backdrop-blur-md rounded-xl flex-col items-center justify-center p-6 text-center z-10 border border-accent-500/30">
-            <div class="w-14 h-14 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-4 text-accent-400">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div id="cv-file-info" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm flex-col items-center justify-center p-6 text-center z-10 border border-indigo-200 rounded-xl">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
             </div>
-            <div class="file-name-display font-mono text-xs text-zinc-200 truncate w-full px-4 mb-6" id="display-file-name">No file selected</div>
-            <button class="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 text-zinc-400 rounded-lg text-xs font-medium transition-colors flex items-center gap-2" onclick="clearFile()">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              Remove
+            <div class="font-medium text-gray-900 truncate w-full max-w-[80%] mb-1" id="display-file-name">No file selected</div>
+            <p class="text-xs text-gray-500 mb-6">File successfully parsed and ready for analysis.</p>
+            <button class="px-4 py-2 bg-white border border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 text-gray-700 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-2 shadow-sm" onclick="clearFile()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              Remove File
             </button>
           </div>
         </div>
         
         <!-- Paste Panel -->
-        <div id="cv-paste-panel" class="hidden flex-1 h-full w-full mt-1">
-          <textarea id="cv-text" class="w-full h-full p-4 bg-dark-bg/50 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-accent-500/50 focus:border-accent-500 transition-all outline-none resize-none text-[13px] leading-relaxed font-mono text-zinc-300 placeholder-zinc-600" placeholder="Paste raw CV text..."></textarea>
+        <div id="cv-paste-panel" class="hidden flex-1 p-2 h-full w-full">
+          <textarea id="cv-text" class="w-full h-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none text-sm leading-relaxed text-gray-800 placeholder-gray-400" placeholder="Paste your raw CV text here..."></textarea>
         </div>
       </div>
     </div>
 
     <!-- Right Column: Job Description Input -->
-    <div class="flex flex-col gap-3">
-      <div class="flex items-center gap-2 px-1 text-zinc-400">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-        <span class="font-heading font-medium text-sm tracking-wide">Job Description Parameters</span>
+    <div class="flex flex-col">
+      <div class="flex items-center mb-3 h-10">
+        <label class="block text-sm font-semibold text-gray-700">Job Description Parameters</label>
       </div>
-      <div class="glass-panel rounded-2xl p-2 h-[400px]">
-        <textarea id="jd-text" class="w-full h-full p-4 bg-dark-bg/50 border border-zinc-800 rounded-xl focus:ring-1 focus:ring-accent-500/50 focus:border-accent-500 transition-all outline-none resize-none text-[13px] leading-relaxed font-mono text-zinc-300 placeholder-zinc-600" placeholder="Paste target job description..."></textarea>
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm h-[360px] p-2 flex flex-col">
+        <textarea id="jd-text" class="w-full h-full p-4 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none text-sm leading-relaxed text-gray-800 placeholder-gray-400" placeholder="Paste the target job description here..."></textarea>
       </div>
     </div>
     
   </div>
 
   <!-- Analyze Action -->
-  <div class="flex justify-center max-w-sm mx-auto mt-6">
-    <button class="relative w-full inline-flex items-center justify-center gap-2 bg-zinc-100 hover:bg-white disabled:bg-accent-600 disabled:hover:bg-accent-600 text-zinc-900 disabled:text-white px-6 py-3.5 rounded-full font-heading font-semibold text-sm transition-all duration-500 active:scale-[0.98] disabled:active:scale-100 disabled:cursor-wait shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] disabled:shadow-glow disabled:hover:shadow-glow" id="analyze-btn" onclick="analyze()">
+  <div class="flex justify-center max-w-sm mx-auto mb-16">
+    <button class="relative w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-8 py-3.5 rounded-lg font-bold text-sm transition-colors shadow-sm disabled:cursor-not-allowed" id="analyze-btn" onclick="analyze()">
       <span class="relative flex items-center gap-2" id="analyze-btn-content">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-        INITIATE ANALYSIS
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        Run ATS Analysis
       </span>
     </button>
   </div>
 
-  <!-- Results Section -->
-  <div id="results-area" class="hidden mt-20 animate-fade-in">
+  <!-- Results Dashboard -->
+  <div id="results-area" class="hidden space-y-6">
     
-    <!-- Score Hero -->
-    <div class="glass-panel rounded-3xl p-8 md:p-10 mb-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
-      <!-- Decor -->
-      <div class="absolute right-0 top-0 w-64 h-full bg-gradient-to-l from-accent-500/5 to-transparent pointer-events-none"></div>
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-2 h-8 bg-indigo-600 rounded-full"></div>
+      <h2 class="text-2xl font-extrabold text-gray-900">Analysis Results</h2>
+    </div>
+
+    <!-- Score & Summary Row -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-8 grid grid-cols-1 md:grid-cols-4 gap-8 items-center">
       
-      <div class="relative shrink-0 flex flex-col items-center justify-center w-32 h-32 rounded-full border border-zinc-800 bg-zinc-900/50 shadow-inner">
-        <div class="font-heading text-5xl font-bold text-white tracking-tighter" id="score-val">0</div>
-        <div class="text-[9px] font-mono text-accent-400 uppercase tracking-[0.2em] mt-1">Match Rate</div>
+      <div class="md:col-span-1 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 pb-8 md:pb-0">
+        <div class="relative w-32 h-32 flex items-center justify-center rounded-full bg-indigo-50 border-8 border-indigo-100">
+          <div class="text-4xl font-black text-indigo-700" id="score-val">0</div>
+        </div>
+        <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Match Rate</div>
       </div>
 
-      <div class="relative flex-1 text-center md:text-left">
-        <h2 class="font-heading text-xl font-medium text-white mb-2 flex items-center gap-2 justify-center md:justify-start" id="score-verdict">
-          <div class="w-2 h-2 rounded-full bg-accent-400 animate-pulse"></div>
-          Analysis Complete
-        </h2>
-        <p class="text-zinc-400 text-sm leading-relaxed max-w-2xl font-light" id="score-desc"></p>
+      <div class="md:col-span-3">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-semibold mb-3 border border-green-200">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          <span id="score-verdict">Analysis Complete</span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Executive Summary</h3>
+        <p class="text-gray-600 text-sm leading-relaxed" id="score-desc"></p>
       </div>
+
     </div>
 
     <!-- Keyword Breakdowns -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       
       <!-- Matched Keywords -->
-      <div class="glass-panel rounded-2xl p-6">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-accent-400">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col h-full">
+        <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+          <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
           </div>
-          <h4 class="font-heading font-medium text-white text-sm">Matched Keywords</h4>
+          <h4 class="font-bold text-gray-900">Matched Keywords</h4>
         </div>
         <div class="kw-grid flex flex-wrap gap-2" id="kw-match"></div>
       </div>
 
       <!-- Missing Keywords -->
-      <div class="glass-panel rounded-2xl p-6">
-        <div class="flex items-center gap-3 mb-5">
-          <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-red-400">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col h-full">
+        <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+          <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </div>
-          <h4 class="font-heading font-medium text-white text-sm">Missing Keywords</h4>
+          <h4 class="font-bold text-gray-900">Missing Keywords</h4>
         </div>
         <div class="kw-grid flex flex-wrap gap-2" id="kw-miss"></div>
       </div>
@@ -277,19 +232,15 @@
 </main>
 
 <!-- Footer -->
-<footer class="border-t border-zinc-800/50 mt-auto bg-dark-bg">
-  <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
-    <div class="flex flex-col items-center md:items-start gap-1">
-      <p class="text-zinc-500 text-xs">Developed by <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank" class="text-zinc-300 hover:text-white transition-colors">Sulisumen Peter</a></p>
-      <p class="text-zinc-600 text-[10px] font-mono uppercase tracking-widest">Powered by AI</p>
-    </div>
-    
-    <div class="social-links flex items-center gap-2">
-      <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank" class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all" aria-label="LinkedIn">
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+<footer class="bg-white border-t border-gray-200 mt-auto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+    <p class="text-gray-500 text-sm">Developed by <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">Sulisumen Peter</a></p>
+    <div class="flex items-center gap-4">
+      <a href="https://www.linkedin.com/in/sulisumen-peter/" target="_blank" class="text-gray-400 hover:text-gray-600 transition-colors" aria-label="LinkedIn">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
       </a>
-      <a href="https://web.facebook.com/profile.php?id=100069561936419" target="_blank" class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-zinc-800 hover:text-white transition-all" aria-label="Facebook">
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+      <a href="https://web.facebook.com/profile.php?id=100069561936419" target="_blank" class="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Facebook">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
       </a>
     </div>
   </div>
@@ -368,7 +319,7 @@ async function analyze() {
   
   btn.disabled = true;
   btnContent.innerHTML = `
-    <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+    <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
     PROCESSING...
   `;
 
@@ -393,8 +344,8 @@ async function analyze() {
   finally {
     btn.disabled = false;
     btnContent.innerHTML = `
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-      INITIATE ANALYSIS
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+      Run ATS Analysis
     `;
   }
 }
