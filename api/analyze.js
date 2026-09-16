@@ -32,36 +32,31 @@ async function tryGemini(cv, jd) {
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
 }
 
-// --- PROVIDER 2: CEREBRAS AI (Fallback) ---
-async function tryCerebras(cv, jd) {
-  const API_KEY = process.env.CEREBRAS_API_KEY;
-  if (!API_KEY) throw new Error("CEREBRAS_API_KEY is missing");
+// --- PROVIDER 2: GEMINI LIGHT (Highly Available Fallback) ---
+async function tryGeminiFallback(cv, jd) {
+  const API_KEY = process.env.GEMINI_API_KEY;
+  if (!API_KEY) throw new Error("GEMINI_API_KEY is missing");
   
-  const res = await fetch("https://api.cerebras.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${API_KEY}`,
-      "Content-Type": "application/json"
-    },
+  // Using the 8B parameter model which rarely hits capacity limits
+  const MODEL = 'gemini-1.5-flash-8b';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: "llama-3.3-70b",
-      messages: [
-        { role: "system", content: getSystemPrompt() },
-        { role: "user", content: `Analyze CV: ${cv} against JD: ${jd}` }
-      ],
-      temperature: 0.1
+      contents: [{ parts: [{ text: `${getSystemPrompt()}\n\nAnalyze CV: ${cv} against JD: ${jd}` }] }],
+      generationConfig: { temperature: 0.1, topK: 1 }
     })
   });
   
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-  
-  // Safely check if choices exist to prevent the "Cannot read properties of undefined" error
-  if (!data.choices || !data.choices[0]) {
-     throw new Error("Unexpected Cerebras response: " + JSON.stringify(data));
+  if (data.error) throw new Error(data.error.message || "Gemini Fallback API Error");
+  if (!data.candidates || !data.candidates[0]) {
+     throw new Error("Unexpected Gemini Fallback response: " + JSON.stringify(data));
   }
   
-  const rawText = data.choices[0].message.content;
+  const rawText = data.candidates[0].content.parts[0].text;
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
 }
 
@@ -118,21 +113,21 @@ module.exports = async function handler(req, res) {
     }
 
     try {
-      console.log("Stage 1: Attempting Gemini...");
+      console.log("Stage 1: Attempting Gemini 3.6...");
       const result = await tryGemini(cv, jd);
       return res.status(200).json(result);
     } catch (err) {
       console.error("Gemini Failed:", err.message);
       
       try {
-        console.log("Stage 2: Falling back to Cerebras AI...");
-        const result = await tryCerebras(cv, jd);
+        console.log("Stage 2: Falling back to Gemini Light (1.5-flash-8b)...");
+        const result = await tryGeminiFallback(cv, jd);
         return res.status(200).json(result);
       } catch (err2) {
-        console.error("Cerebras AI Failed:", err2.message);
+        console.error("Gemini Fallback Failed:", err2.message);
         return res.status(503).json({ 
           error: "Analysis failed. AI engines are currently at capacity.", 
-          debug: `Gemini Error: ${err.message} | Cerebras Error: ${err2.message}` 
+          debug: `Gemini Error: ${err.message} | Fallback Error: ${err2.message}` 
         });
       }
     }
