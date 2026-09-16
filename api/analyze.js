@@ -10,7 +10,7 @@ async function tryGemini(cv, jd) {
   if (!API_KEY) throw new Error("GEMINI_API_KEY is missing");
   
   // Using a universally supported model name
-  const MODEL = 'gemini-1.5-flash-latest';
+  const MODEL = 'gemini-1.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
   const res = await fetch(url, {
@@ -45,7 +45,7 @@ async function tryCerebras(cv, jd) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "llama3.1-70b",
+      model: "llama3.1-8b",
       messages: [
         { role: "system", content: getSystemPrompt() },
         { role: "user", content: `Analyze CV: ${cv} against JD: ${jd}` }
