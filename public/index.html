@@ -331,7 +331,7 @@ async function analyze() {
     });
     
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
+    if (data.error) throw new Error(data.error + (data.debug ? `\n\nDEBUG INFO:\n${data.debug}` : ""));
 
     document.getElementById('results-area').style.display = 'block';
     document.getElementById('score-val').innerText = data.score;
