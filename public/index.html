@@ -65,6 +65,14 @@
     #toast.show {
       @apply translate-y-0 opacity-100;
     }
+    
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   }
 </style>
 </head>
@@ -79,24 +87,31 @@
 <!-- Navigation Header -->
 <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-    <a class="flex items-center gap-3 group" href="#">
+    <a class="flex items-center gap-3 group cursor-pointer" onclick="showSection('analyzer')">
       <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
       </div>
       <span class="font-bold text-gray-900 text-lg tracking-tight">CVScan<span class="text-indigo-600">AI</span></span>
     </a>
-    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-2.5 py-1 rounded-md">
-      ATS Dashboard
-    </div>
+    
+    <nav class="flex items-center gap-4 sm:gap-6">
+      <button onclick="showSection('analyzer')" id="nav-analyzer" class="text-sm font-semibold text-indigo-600 transition-colors hover:text-indigo-800">ATS Analyzer</button>
+      <button onclick="showSection('jobs')" id="nav-jobs" class="text-sm font-medium text-gray-500 transition-colors hover:text-indigo-600">Find Jobs</button>
+      <div class="hidden sm:block text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-2.5 py-1 rounded-md ml-2 border border-gray-200">
+        Dashboard
+      </div>
+    </nav>
   </div>
 </header>
 
 <!-- Main Container -->
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full relative">
   
-  <!-- Hero Section -->
-  <div class="text-center max-w-3xl mx-auto mb-12">
-    <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl mb-4">
+  <!-- ATS Analyzer Section -->
+  <div id="section-analyzer">
+    <!-- Hero Section -->
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl mb-4">
       Intelligent ATS Resume Analysis
     </h1>
     <p class="text-lg text-gray-500 leading-relaxed">
@@ -226,7 +241,114 @@
         </div>
         <div class="kw-grid flex flex-wrap gap-2" id="kw-miss"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Find Jobs Section -->
+  <div id="section-jobs" class="hidden animate-fade-in">
+    <div class="text-center max-w-3xl mx-auto mb-12">
+      <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl mb-4">
+        Discover Career Opportunities
+      </h1>
+      <p class="text-lg text-gray-500 leading-relaxed">
+        Curated platforms to help you find your next role. From AI & Tech to executive leadership, explore these specialized job boards to accelerate your career.
+      </p>
+    </div>
+
+    <!-- Job Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       
+      <!-- Card: AIJobs.net -->
+      <a href="https://aijobs.net/" target="_blank" rel="noopener noreferrer" class="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full hover:border-indigo-200 block">
+        <div class="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-4 border border-indigo-100">
+          AI & Tech
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">AIJobs.net</h3>
+        <p class="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">Focused on jobs in artificial intelligence, machine learning, data science, and related technical fields. Candidates can discover opportunities across different locations and remote positions.</p>
+        <div class="inline-flex items-center justify-center gap-2 w-full bg-gray-50 group-hover:bg-indigo-50 border border-gray-200 group-hover:border-indigo-100 text-gray-800 group-hover:text-indigo-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors mt-auto">
+          Visit Site
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+      </a>
+
+      <!-- Card: Wellfound -->
+      <a href="https://wellfound.com/" target="_blank" rel="noopener noreferrer" class="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full hover:border-indigo-200 block">
+        <div class="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-4 border border-indigo-100">
+          Startups & Tech
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">Wellfound</h3>
+        <p class="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">A platform for startup careers that connects candidates with startups and hiring teams. It features opportunities across engineering, AI, product, data, fintech, and other technology roles.</p>
+        <div class="inline-flex items-center justify-center gap-2 w-full bg-gray-50 group-hover:bg-indigo-50 border border-gray-200 group-hover:border-indigo-100 text-gray-800 group-hover:text-indigo-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors mt-auto">
+          Visit Site
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+      </a>
+
+      <!-- Card: ExecThread -->
+      <a href="https://execthread.com/" target="_blank" rel="noopener noreferrer" class="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full hover:border-indigo-200 block">
+        <div class="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-4 border border-indigo-100">
+          Executive Careers
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">ExecThread</h3>
+        <p class="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">A platform focused on senior-level and executive opportunities, including confidential roles that may not appear on traditional public job boards. It connects experienced professionals with executive recruiters and hiring organizations.</p>
+        <div class="inline-flex items-center justify-center gap-2 w-full bg-gray-50 group-hover:bg-indigo-50 border border-gray-200 group-hover:border-indigo-100 text-gray-800 group-hover:text-indigo-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors mt-auto">
+          Visit Site
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+      </a>
+
+      <!-- Card: Hired.org -->
+      <a href="https://www.hired.org/" target="_blank" rel="noopener noreferrer" class="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full hover:border-indigo-200 block">
+        <div class="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-4 border border-indigo-100">
+          Career Development
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">Hired.org</h3>
+        <p class="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">A career development and workforce organization offering coaching, training, employment support, and connections to employers. Its programs are particularly focused on supporting eligible participants in the Minneapolis–Saint Paul area.</p>
+        <div class="inline-flex items-center justify-center gap-2 w-full bg-gray-50 group-hover:bg-indigo-50 border border-gray-200 group-hover:border-indigo-100 text-gray-800 group-hover:text-indigo-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors mt-auto">
+          Visit Site
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+      </a>
+
+      <!-- Card: Pallet -->
+      <a href="https://www.pallet.com/" target="_blank" rel="noopener noreferrer" class="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full hover:border-indigo-200 block">
+        <div class="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-4 border border-indigo-100">
+          Jobs & Communities
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">Pallet</h3>
+        <p class="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">A platform built around curated talent communities and hiring networks, helping job seekers discover opportunities through communities and organizations connected to specific industries and career paths.</p>
+        <div class="inline-flex items-center justify-center gap-2 w-full bg-gray-50 group-hover:bg-indigo-50 border border-gray-200 group-hover:border-indigo-100 text-gray-800 group-hover:text-indigo-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors mt-auto">
+          Visit Site
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+      </a>
+
+      <!-- Card: The Ladders -->
+      <a href="https://www.theladders.com/" target="_blank" rel="noopener noreferrer" class="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full hover:border-indigo-200 block">
+        <div class="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-4 border border-indigo-100">
+          Professional & Executive
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">The Ladders</h3>
+        <p class="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">A job platform focused on experienced professionals and higher-paying careers, featuring professional and senior-level positions across multiple industries alongside career resources.</p>
+        <div class="inline-flex items-center justify-center gap-2 w-full bg-gray-50 group-hover:bg-indigo-50 border border-gray-200 group-hover:border-indigo-100 text-gray-800 group-hover:text-indigo-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors mt-auto">
+          Visit Site
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+      </a>
+
+      <!-- Card: Arc.dev -->
+      <a href="https://arc.dev/" target="_blank" rel="noopener noreferrer" class="group bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all p-6 flex flex-col h-full hover:border-indigo-200 block">
+        <div class="inline-flex self-start items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold mb-4 border border-indigo-100">
+          Remote Tech Careers
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">Arc.dev</h3>
+        <p class="text-sm text-gray-600 mb-6 flex-grow leading-relaxed">A remote-work platform connecting developers, designers, marketers, product professionals, and other specialists with remote opportunities at technology companies and startups.</p>
+        <div class="inline-flex items-center justify-center gap-2 w-full bg-gray-50 group-hover:bg-indigo-50 border border-gray-200 group-hover:border-indigo-100 text-gray-800 group-hover:text-indigo-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors mt-auto">
+          Visit Site
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+      </a>
+
     </div>
   </div>
 </main>
@@ -258,6 +380,21 @@ function sanitizeText(text) {
     .replace(/\s+/g, ' ')            
     .trim()
     .toLowerCase();
+}
+
+function showSection(sectionId) {
+  document.getElementById('section-analyzer').classList.add('hidden');
+  document.getElementById('section-jobs').classList.add('hidden');
+  
+  document.getElementById('nav-analyzer').classList.remove('text-indigo-600', 'font-semibold');
+  document.getElementById('nav-analyzer').classList.add('text-gray-500', 'font-medium');
+  
+  document.getElementById('nav-jobs').classList.remove('text-indigo-600', 'font-semibold');
+  document.getElementById('nav-jobs').classList.add('text-gray-500', 'font-medium');
+
+  document.getElementById('section-' + sectionId).classList.remove('hidden');
+  document.getElementById('nav-' + sectionId).classList.remove('text-gray-500', 'font-medium');
+  document.getElementById('nav-' + sectionId).classList.add('text-indigo-600', 'font-semibold');
 }
 
 function switchTab(mode, btn) {
