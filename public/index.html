@@ -17,8 +17,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+<script src="/js/theme.js"></script>
+<script src="/js/storage.js"></script>
+<script src="/js/generators.js"></script>
 <script>
   tailwind.config = {
+    darkMode: 'class',
     theme: {
       extend: {
         fontFamily: {
@@ -76,7 +80,7 @@
   }
 </style>
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased font-sans">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col antialiased font-sans transition-colors duration-200">
 
 <!-- Toast Notification -->
 <div id="toast">
@@ -85,21 +89,26 @@
 </div>
 
 <!-- Navigation Header -->
-<header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+<header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 transition-colors duration-200">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <a class="flex items-center gap-3 group cursor-pointer" onclick="showSection('analyzer')">
       <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
       </div>
-      <span class="font-bold text-gray-900 text-lg tracking-tight">CVScan<span class="text-indigo-600">AI</span></span>
+      <span class="font-bold text-gray-900 dark:text-white text-lg tracking-tight">CVScan<span class="text-indigo-600 dark:text-indigo-400">AI</span></span>
     </a>
     
-    <nav class="flex items-center gap-4 sm:gap-6">
-      <button onclick="showSection('analyzer')" id="nav-analyzer" class="text-sm font-semibold text-indigo-600 transition-colors hover:text-indigo-800">ATS Analyzer</button>
-      <button onclick="showSection('jobs')" id="nav-jobs" class="text-sm font-medium text-gray-500 transition-colors hover:text-indigo-600">Find Jobs</button>
-      <div class="hidden sm:block text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100 px-2.5 py-1 rounded-md ml-2 border border-gray-200">
-        Dashboard
-      </div>
+    <nav class="flex items-center gap-4 sm:gap-6 overflow-x-auto whitespace-nowrap">
+      <button onclick="showSection('analyzer')" id="nav-analyzer" class="nav-btn text-sm font-semibold text-indigo-600 dark:text-indigo-400 transition-colors hover:text-indigo-800 dark:hover:text-indigo-300">Analyzer</button>
+      <button onclick="showSection('interview')" id="nav-interview" class="nav-btn text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Interview Qs</button>
+      <button onclick="showSection('coverletter')" id="nav-coverletter" class="nav-btn text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Cover Letter</button>
+      <button onclick="showSection('matcher')" id="nav-matcher" class="nav-btn text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">JD Matcher</button>
+      <button onclick="showSection('history')" id="nav-history" class="nav-btn text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">History</button>
+      <button onclick="showSection('bookmarks')" id="nav-bookmarks" class="nav-btn text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Bookmarks</button>
+      <button onclick="showSection('jobs')" id="nav-jobs" class="nav-btn text-sm font-medium text-gray-500 dark:text-gray-400 transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Find Jobs</button>
+      <button onclick="toggleTheme()" class="ml-2 p-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+      </button>
     </nav>
   </div>
 </header>
@@ -245,10 +254,56 @@
   </div>
 </div>
 
-<!-- Find Jobs Section -->
+  <!-- Analysis History Section -->
+  <div id="section-history" class="hidden animate-fade-in">
+    <div class="max-w-3xl mx-auto mb-12">
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Recent Analysis History</h2>
+      <div id="history-list" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Section -->
+  <div id="section-bookmarks" class="hidden animate-fade-in">
+    <div class="max-w-3xl mx-auto mb-12">
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Saved Job Boards</h2>
+      <div id="bookmarks-list" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- Interview Question Generator Section -->
+  <div id="section-interview" class="hidden animate-fade-in">
+    <div class="max-w-3xl mx-auto mb-12">
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Interview Question Generator</h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">Generates tailored technical, behavioral, and role-specific questions using your currently loaded CV and Job Description.</p>
+      <button id="btn-generate-iq" onclick="generateInterviewQs()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50">Generate Interview Questions</button>
+      <div id="iq-result" class="hidden mt-8 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm"></div>
+    </div>
+  </div>
+
+  <!-- Cover Letter Generator Section -->
+  <div id="section-coverletter" class="hidden animate-fade-in">
+    <div class="max-w-3xl mx-auto mb-12">
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Cover Letter Generator</h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">Generates a highly-targeted cover letter using your exact CV qualifications matched to the target job description.</p>
+      <button id="btn-generate-cl" onclick="generateCoverLetter()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50">Generate Cover Letter</button>
+      <div id="cl-result" class="hidden mt-8 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300"></div>
+    </div>
+  </div>
+
+  <!-- JD Matcher Section -->
+  <div id="section-matcher" class="hidden animate-fade-in">
+    <div class="max-w-3xl mx-auto mb-12">
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white mb-6">Job Description Matcher</h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">A deep dive into missing skills, matched skills, and areas you should strengthen before applying.</p>
+      <button id="btn-generate-jd" onclick="generateJDMatch()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50">Generate Match Analysis</button>
+      <div id="jd-result" class="hidden mt-8 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm"></div>
+    </div>
+  </div>
+
+  <!-- Find Jobs Section -->
   <div id="section-jobs" class="hidden animate-fade-in">
     <div class="text-center max-w-3xl mx-auto mb-12">
-      <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl mb-4">
+      <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight sm:text-5xl mb-4">
         Discover Career Opportunities
       </h1>
       <p class="text-lg text-gray-500 leading-relaxed">
@@ -384,18 +439,27 @@ function sanitizeText(text) {
 }
 
 function showSection(sectionId) {
-  document.getElementById('section-analyzer').classList.add('hidden');
-  document.getElementById('section-jobs').classList.add('hidden');
+  const sections = ['analyzer', 'jobs', 'interview', 'coverletter', 'matcher', 'history', 'bookmarks'];
   
-  document.getElementById('nav-analyzer').classList.remove('text-indigo-600', 'font-semibold');
-  document.getElementById('nav-analyzer').classList.add('text-gray-500', 'font-medium');
-  
-  document.getElementById('nav-jobs').classList.remove('text-indigo-600', 'font-semibold');
-  document.getElementById('nav-jobs').classList.add('text-gray-500', 'font-medium');
+  sections.forEach(id => {
+    const el = document.getElementById('section-' + id);
+    if (el) el.classList.add('hidden');
+    
+    const navBtn = document.getElementById('nav-' + id);
+    if (navBtn) {
+      navBtn.classList.remove('text-indigo-600', 'dark:text-indigo-400', 'font-semibold');
+      navBtn.classList.add('text-gray-500', 'dark:text-gray-400', 'font-medium');
+    }
+  });
 
-  document.getElementById('section-' + sectionId).classList.remove('hidden');
-  document.getElementById('nav-' + sectionId).classList.remove('text-gray-500', 'font-medium');
-  document.getElementById('nav-' + sectionId).classList.add('text-indigo-600', 'font-semibold');
+  const targetEl = document.getElementById('section-' + sectionId);
+  if (targetEl) targetEl.classList.remove('hidden');
+  
+  const targetBtn = document.getElementById('nav-' + sectionId);
+  if (targetBtn) {
+    targetBtn.classList.remove('text-gray-500', 'dark:text-gray-400', 'font-medium');
+    targetBtn.classList.add('text-indigo-600', 'dark:text-indigo-400', 'font-semibold');
+  }
 }
 
 function switchTab(mode, btn) {
