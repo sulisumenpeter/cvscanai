@@ -1,13 +1,11 @@
-// server.js — Triple Fallback Strategy | Sulisumen Peter
 require('dotenv').config();
 const express = require('express');
-const fetch = require('node-fetch');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- REUSABLE PROMPT ---
@@ -17,7 +15,10 @@ Format: {"score": 0, "matched_keywords": [], "missing_keywords": [], "strengths"
 // --- PROVIDER 1: GEMINI (Primary) ---
 async function tryGemini(cv, jd) {
   const API_KEY = process.env.GEMINI_API_KEY;
-  const MODEL = 'gemini-3-flash-preview';
+  if (!API_KEY) throw new Error("GEMINI_API_KEY is missing");
+  
+  // Using the stable 1.5-flash model
+  const MODEL = 'gemini-1.5-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
   const res = await fetch(url, {
@@ -28,8 +29,9 @@ async function tryGemini(cv, jd) {
       generationConfig: { temperature: 0.1, topK: 1 }
     })
   });
+  
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
+  if (data.error) throw new Error(data.error.message || "Gemini API Error");
   
   const rawText = data.candidates[0].content.parts[0].text;
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
@@ -38,6 +40,8 @@ async function tryGemini(cv, jd) {
 // --- PROVIDER 2: CEREBRAS AI (Fallback) ---
 async function tryCerebras(cv, jd) {
   const API_KEY = process.env.CEREBRAS_API_KEY;
+  if (!API_KEY) throw new Error("CEREBRAS_API_KEY is missing");
+  
   const res = await fetch("https://api.cerebras.ai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -53,6 +57,7 @@ async function tryCerebras(cv, jd) {
       temperature: 0.1
     })
   });
+  
   const data = await res.json();
   if (data.error) throw new Error(data.error.message || "Cerebras API Error");
   
@@ -61,31 +66,45 @@ async function tryCerebras(cv, jd) {
 }
 
 // --- MAIN API ROUTE ---
-app.post('/api/analyze', async (req, res) => {
-  const { cv, jd } = req.body;
-
+app.post('/api/analyze', async (req, res, next) => {
   try {
-    console.log("Stage 1: Attempting Gemini...");
-    const result = await tryGemini(cv, jd);
-    return res.json(result);
-  } catch (err) {
-    console.error("Gemini Failed:", err.message);
-    
-    try {
-      console.log("Stage 2: Falling back to Cerebras AI...");
-      const result = await tryCerebras(cv, jd);
-      return res.json(result);
-    } catch (err2) {
-      console.error("Cerebras AI Failed:", err2.message);
-      res.status(503).json({ error: "High traffic. AI engines are currently at capacity. Please try again in 1 minute." });
+    const { cv, jd } = req.body;
+    if (!cv || !jd) {
+      return res.status(400).json({ error: "CV and JD are required." });
     }
+
+    try {
+      console.log("Stage 1: Attempting Gemini...");
+      const result = await tryGemini(cv, jd);
+      return res.json(result);
+    } catch (err) {
+      console.error("Gemini Failed:", err.message);
+      
+      try {
+        console.log("Stage 2: Falling back to Cerebras AI...");
+        const result = await tryCerebras(cv, jd);
+        return res.json(result);
+      } catch (err2) {
+        console.error("Cerebras AI Failed:", err2.message);
+        return res.status(503).json({ error: "High traffic. AI engines are currently at capacity or API keys are missing." });
+      }
+    }
+  } catch (globalErr) {
+    next(globalErr);
   }
 });
 
+// Fallback for SPA routing
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
+// Global Error Handler to guarantee JSON response instead of HTML crashes
+app.use((err, req, res, next) => {
+  console.error("Fatal Server Error:", err);
+  res.status(500).json({ error: "Internal Server Error occurred. Please check Vercel runtime logs for details." });
+});
+
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`🚀 Sulisumen Peter Hub: AI Fallback Active on ${PORT}`));
+  app.listen(PORT, () => console.log(`🚀 Sulisumen Peter Hub: AI Active on ${PORT}`));
 }
 
 module.exports = app;
