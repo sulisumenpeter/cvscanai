@@ -88,7 +88,10 @@ module.exports = async function handler(req, res) {
         return res.status(200).json(result);
       } catch (err2) {
         console.error("Cerebras AI Failed:", err2.message);
-        return res.status(503).json({ error: "High traffic. AI engines are currently at capacity or API keys are missing." });
+        return res.status(503).json({ 
+          error: "Analysis failed. AI engines are currently at capacity.", 
+          debug: `Gemini Error: ${err.message} | Cerebras Error: ${err2.message}` 
+        });
       }
     }
   } catch (globalErr) {
