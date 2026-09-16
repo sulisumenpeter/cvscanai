@@ -65,6 +65,30 @@ async function tryCerebras(cv, jd) {
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
 }
 
+// --- RATE LIMITING ---
+// Note: In serverless environments, this in-memory map resets when the container spins down. 
+// It is sufficient to prevent rapid-fire spam from a single IP on a warm container.
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const MAX_REQUESTS_PER_WINDOW = 5; // Max 5 analyzes per 10 mins per IP
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+
+  if (!record || (now - record.startTime > RATE_LIMIT_WINDOW_MS)) {
+    rateLimitMap.set(ip, { count: 1, startTime: now });
+    return true;
+  }
+
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    return false;
+  }
+
+  record.count += 1;
+  return true;
+}
+
 module.exports = async function handler(req, res) {
   // CORS Headers if needed
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -78,6 +102,13 @@ module.exports = async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: "Method Not Allowed" });
+  }
+
+  // Extract client IP (Vercel provides this in x-forwarded-for)
+  const clientIp = req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown-ip';
+  
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({ error: "Too many requests. Please wait a few minutes before analyzing another CV." });
   }
 
   try {
