@@ -37,8 +37,8 @@ async function tryGeminiFallback(cv, jd) {
   const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) throw new Error("GEMINI_API_KEY is missing");
   
-  // Using the 8B parameter model which rarely hits capacity limits
-  const MODEL = 'gemini-1.5-flash-8b';
+  // Using the Pro version as a fallback queue bypass
+  const MODEL = 'gemini-3.6-pro';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
   const res = await fetch(url, {
