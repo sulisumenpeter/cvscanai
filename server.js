@@ -35,17 +35,17 @@ async function tryGemini(cv, jd) {
   return JSON.parse(rawText.replace(/```json|```/g, '').trim());
 }
 
-// --- PROVIDER 2: TOGETHER AI (Fallback) ---
-async function tryTogether(cv, jd) {
-  const API_KEY = process.env.TOGETHER_API_KEY;
-  const res = await fetch("https://api.together.xyz/v1/chat/completions", {
+// --- PROVIDER 2: CEREBRAS AI (Fallback) ---
+async function tryCerebras(cv, jd) {
+  const API_KEY = process.env.CEREBRAS_API_KEY;
+  const res = await fetch("https://api.cerebras.ai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "meta-llama/Llama-3-70b-chat-hf",
+      model: "llama3.1-70b",
       messages: [
         { role: "system", content: getSystemPrompt() },
         { role: "user", content: `Analyze CV: ${cv} against JD: ${jd}` }
@@ -54,30 +54,10 @@ async function tryTogether(cv, jd) {
     })
   });
   const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return JSON.parse(data.choices[0].message.content);
-}
-
-// --- PROVIDER 3: FIREWORKS AI (Final Resort) ---
-async function tryFireworks(cv, jd) {
-  const API_KEY = process.env.FIREWORKS_API_KEY;
-  const res = await fetch("https://api.fireworks.ai/inference/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "accounts/fireworks/models/llama-v3-70b-instruct",
-      messages: [
-        { role: "system", content: getSystemPrompt() },
-        { role: "user", content: `Analyze CV: ${cv} against JD: ${jd}` }
-      ],
-      temperature: 0.1
-    })
-  });
-  const data = await res.json();
-  return JSON.parse(data.choices[0].message.content);
+  if (data.error) throw new Error(data.error.message || "Cerebras API Error");
+  
+  const rawText = data.choices[0].message.content;
+  return JSON.parse(rawText.replace(/```json|```/g, '').trim());
 }
 
 // --- MAIN API ROUTE ---
@@ -92,20 +72,12 @@ app.post('/api/analyze', async (req, res) => {
     console.error("Gemini Failed:", err.message);
     
     try {
-      console.log("Stage 2: Falling back to Together AI...");
-      const result = await tryTogether(cv, jd);
+      console.log("Stage 2: Falling back to Cerebras AI...");
+      const result = await tryCerebras(cv, jd);
       return res.json(result);
     } catch (err2) {
-      console.error("Together AI Failed:", err2.message);
-      
-      try {
-        console.log("Stage 3: Falling back to Fireworks AI...");
-        const result = await tryFireworks(cv, jd);
-        return res.json(result);
-      } catch (err3) {
-        console.error("All Providers Failed.");
-        res.status(503).json({ error: "High traffic. All AI engines are currently at capacity. Please try again in 1 minute." });
-      }
+      console.error("Cerebras AI Failed:", err2.message);
+      res.status(503).json({ error: "High traffic. AI engines are currently at capacity. Please try again in 1 minute." });
     }
   }
 });
@@ -113,7 +85,7 @@ app.post('/api/analyze', async (req, res) => {
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 if (require.main === module) {
-  app.listen(PORT, () => console.log(`🚀 Sulisumen Peter Hub: Triple Fallback Active on ${PORT}`));
+  app.listen(PORT, () => console.log(`🚀 Sulisumen Peter Hub: AI Fallback Active on ${PORT}`));
 }
 
 module.exports = app;
